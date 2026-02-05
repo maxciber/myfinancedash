@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinance Local Dashboard (v15.2 - Heatmap Fix)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; transition: background-color 0.3s, color 0.3s; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 24px; border: 1px solid #e2e8f0; transition: background-color 0.3s, border-color 0.3s; }
+        .btn-upload { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; padding: 14px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); transition: all 0.2s; }
+        .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4); }
+        .btn-camera { background: white; color: #4f46e5; border: 2px solid #4f46e5; padding: 8px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        
+        /* MODO OSCURO */
+        body.dark-mode { background-color: #0f172a; color: #cbd5e1; }
+        body.dark-mode .card { background-color: #1e293b; border-color: #334155; }
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 { color: #f1f5f9 !important; }
+        body.dark-mode p.text-slate-500 { color: #94a3b8 !important; }
+        body.dark-mode .bg-white { background-color: #1e293b !important; }
+        body.dark-mode .bg-slate-50 { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        body.dark-mode tbody tr { border-bottom-color: #334155 !important; }
+        body.dark-mode .text-slate-600 { color: #cbd5e1 !important; }
+        body.dark-mode .text-slate-700 { color: #e2e8f0 !important; }
+        body.dark-mode .text-slate-800 { color: #f8fafc !important; }
+        body.dark-mode .heat-day.bg-slate-100 { background-color: #334155 !important; border-color: #475569; }
+        body.dark-mode .btn-camera { background-color: #1e293b; color: #818cf8; border-color: #818cf8; }
+        body.dark-mode .bg-indigo-50 { background-color: rgba(79, 70, 229, 0.2) !important; border-color: rgba(79, 70, 229, 0.3) !important; }
+        body.dark-mode .bg-orange-50 { background-color: rgba(249, 115, 22, 0.2) !important; border-color: rgba(249, 115, 22, 0.3) !important; }
+        body.dark-mode .text-indigo-900 { color: #e0e7ff !important; }
+        body.dark-mode .text-orange-900 { color: #ffedd5 !important; }
+
+        .heatmap-container { display: flex; flex-wrap: wrap; gap: 4px; }
+        .heat-day { width: 14px; height: 14px; border-radius: 3px; cursor: pointer; transition: transform 0.1s; border: 1px solid rgba(0,0,0,0.03); }
+        .heat-day:hover { transform: scale(1.3); z-index: 10; }
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        body.dark-mode .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+        body.dark-mode .custom-scroll::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="p-6 md:p-10">
+
+    <div class="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row justify-between items-center">
+        <div class="flex items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">MyFinance Local Dashboard 📊</h1>
+                <p class="text-slate-500 mt-1">Control Financiero 100% Privado</p>
+            </div>
+            <button id="btn-theme" class="btn-camera no-export" title="Cambiar Tema"><span>🌓</span></button>
+            <button id="btn-screenshot" class="btn-camera hidden no-export"><span>📸</span> Exportar PNG</button>
+        </div>
+        <div class="mt-4 md:mt-0 bg-white px-4 py-2 rounded-full border border-slate-200 text-xs font-semibold text-slate-500 shadow-sm no-export">🔒 Modo Seguro: Datos Locales</div>
+    </div>
+
+    <div id="upload-area" class="max-w-3xl mx-auto mt-16 text-center no-export">
+        <div class="bg-white p-12 rounded-2xl shadow-xl border-2 border-slate-200 border-dashed transition-colors">
+            <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">📂</div>
+            <h2 class="text-2xl font-bold mb-3 text-slate-800">Analiza tus gastos en segundos</h2>
+            <p class="text-slate-500 mb-8 max-w-md mx-auto">Arrastra tu archivo Excel aquí o selecciónalo para ver tu informe detallado.</p>
+            <label class="btn-upload text-lg relative">Seleccionar Archivo<input type="file" id="file-input" class="hidden" accept=".xls, .xlsx, .csv"></label>
+        </div>
+    </div>
+
+    <div id="dashboard" class="max-w-7xl mx-auto hidden pb-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="card border-l-4 border-red-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Gastos Totales</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-gastos">0 €</p></div>
+            <div class="card border-l-4 border-green-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos Totales</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-ingresos">0 €</p></div>
+            <div class="card border-l-4 border-blue-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Balance</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-balance">0 €</p></div>
+            <div class="card border-l-4 border-purple-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Suscripciones</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-subs">0</p></div>
+        </div>
+
+        <div class="card mb-8">
+            <h3 class="font-bold text-slate-700 mb-4 text-sm flex items-center gap-2">🔥 Mapa de Calor: Intensidad de Gastos (90 días)</h3>
+            <div id="heatmap" class="heatmap-container"></div>
+            <div class="mt-4 flex gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-slate-100 rounded"></div> Sin Gasto</div>
+                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-100 rounded"></div> Bajo</div>
+                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-300 rounded"></div> Medio</div>
+                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-600 rounded"></div> Alto</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="card bg-indigo-50 border-indigo-100 flex items-center justify-between">
+                <div><p class="text-xs font-bold text-indigo-800 uppercase">Tarjetas / Google Pay</p><p class="text-xs text-indigo-400">Compras físicas y online</p></div>
+                <p class="text-3xl font-bold text-indigo-900" id="kpi-tarjeta">0 €</p>
+            </div>
+            <div class="card bg-orange-50 border-orange-100 flex items-center justify-between">
+                <div><p class="text-xs font-bold text-orange-800 uppercase">Transferencias</p><p class="text-xs text-orange-400">Enviadas desde cuenta</p></div>
+                <p class="text-3xl font-bold text-orange-900" id="kpi-transfer">0 €</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card flex flex-col items-center justify-center">
+                <h3 class="font-bold text-slate-700 mb-2 text-sm self-start">🏁 Velocímetro de Ahorro</h3>
+                <div class="relative w-full h-[220px] max-w-sm"><canvas id="chart-gauge"></canvas></div>
+                <div class="text-center -mt-10"><p class="text-3xl font-black text-slate-800" id="gauge-percent">0%</p></div>
+            </div>
+            <div class="card flex flex-col">
+                <h3 class="font-bold text-slate-700 mb-6 text-sm">🍩 Distribución de Gastos</h3>
+                <div class="flex-grow min-h-[250px] relative"><canvas id="chart-pie"></canvas></div>
+            </div>
+            <div class="card lg:col-span-2 flex flex-col">
+                <h3 class="font-bold text-slate-700 mb-6 text-sm">📈 Evolución de Saldo</h3>
+                <div class="flex-grow min-h-[300px] relative"><canvas id="chart-line"></canvas></div>
+            </div>
+        </div>
+
+        <div class="card mb-8 overflow-hidden">
+            <h3 class="font-bold text-slate-700 mb-6 text-sm">🌊 Flujo de Dinero</h3>
+            <div id="sankey-container" style="width: 100%; height: 400px;"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div class="card">
+                <h3 class="font-bold text-red-600 mb-4 text-sm uppercase flex items-center gap-2">🔻 Top 5 Mayores Gastos</h3>
+                <div id="top-gastos-list" class="text-sm"></div>
+            </div>
+            <div class="card">
+                <h3 class="font-bold text-green-600 mb-4 text-sm uppercase flex items-center gap-2">🔺 Top 5 Mayores Ingresos</h3>
+                <div id="top-ingresos-list" class="text-sm"></div>
+            </div>
+        </div>
+
+        <div class="card overflow-hidden no-export">
+            <h3 class="font-bold text-slate-700 mb-6">📝 Detalle de movimientos</h3>
+            <div class="overflow-auto max-h-[500px] custom-scroll">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="bg-slate-50 text-slate-700 font-bold uppercase text-xs sticky top-0 z-10 shadow-sm">
+                        <tr><th class="px-6 py-4">Fecha</th><th class="px-6 py-4">Concepto</th><th class="px-6 py-4">Categoría</th><th class="px-6 py-4 text-right">Importe</th></tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-100 bg-white"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            categories: {
+                '🛒 Supermercado': ['mercadona', 'lidl', 'carrefour', 'dia', 'consum', 'alcampo', 'super'],
+                '⛽ Transporte': ['repsol', 'cepsa', 'galp', 'uber', 'cabify', 'renfe', 'gasolinera'],
+                '📺 Suscripciones': ['netflix', 'spotify', 'hbo', 'disney', 'prime', 'google storage', 'gym'],
+                '🍔 Restauración': ['restaurante', 'bar', 'cafe', 'mcdonalds', 'burger', 'glovo', 'just eat', 'vips'],
+                '🏠 Hogar/Facturas': ['iberdrola', 'endesa', 'naturgy', 'agua', 'luz', 'gas', 'internet', 'vodafone'],
+                '📦 Compras Online': ['amazon', 'aliexpress', 'zara', 'decathlon'],
+                '💳 Digital/Bancos': ['bizum', 'paypal', 'transferencia', 'revolut']
+            },
+            colors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#6366f1', '#8b5cf6']
+        };
+
+        const UTILS = {
+            fmtMoney: (n) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }),
+            parseDate: (val) => {
+                if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000)).toLocaleDateString('es-ES');
+                return String(val);
+            },
+            parseImporte: (val) => {
+                let clean = String(val).replace(/[^\d,.-]/g, '').replace(',', '.');
+                return parseFloat(clean);
+            }
+        };
+
+        const DataEngine = {
+            detectColumns: (rows) => {
+                let colMap = { fecha: -1, concepto: -1, importe: -1 };
+                let startIdx = -1;
+                for (let i = 0; i < rows.length; i++) {
+                    const rowStr = rows[i].join(' ').toLowerCase();
+                    if ((rowStr.includes('concepto') || rowStr.includes('descripción')) && rowStr.includes('importe')) {
+                        rows[i].forEach((cell, idx) => {
+                            const txt = String(cell).toLowerCase().trim();
+                            if (txt.includes('fecha')) colMap.fecha = idx;
+                            if (txt.includes('operativa') && colMap.fecha === -1) colMap.fecha = idx;
+                            if (txt.includes('concepto') || txt.includes('descripción')) colMap.concepto = idx;
+                            if (txt.includes('importe')) colMap.importe = idx;
+                        });
+                        startIdx = i + 1; break;
+                    }
+                }
+                return { colMap, startIdx };
+            },
+            processRows: (rows) => {
+                const { colMap, startIdx } = DataEngine.detectColumns(rows);
+                if (startIdx === -1) return null;
+                let data = { movs: [], stats: { ing: 0, gas: 0, subs: 0, card: 0, trans: 0 }, catTotals: {}, ranking: {}, dailyGas: {} };
+                for (let i = startIdx; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (!row[colMap.concepto] || !row[colMap.importe]) continue;
+                    let desc = String(row[colMap.concepto]);
+                    let importe = UTILS.parseImporte(row[colMap.importe]);
+                    if (isNaN(importe)) continue;
+                    let cat = '📂 Otros';
+                    let rawFecha = row[colMap.fecha];
+                    let fecha = UTILS.parseDate(rawFecha);
+                    if (importe < 0) {
+                        data.stats.gas += Math.abs(importe);
+                        let lowerDesc = desc.toLowerCase();
+                        for (const [k, v] of Object.entries(CONFIG.categories)) { if (v.some(kw => lowerDesc.includes(kw))) { cat = k; break; } }
+                        if (cat.includes('Suscripciones')) data.stats.subs++;
+                        if (['tarjeta', 'pay', 'bizum', 'compra'].some(k => lowerDesc.includes(k))) data.stats.card += Math.abs(importe); else data.stats.trans += Math.abs(importe);
+                        data.catTotals[cat] = (data.catTotals[cat] || 0) + Math.abs(importe);
+                        data.ranking[desc.substring(0, 25).toUpperCase()] = (data.ranking[desc.substring(0, 25).toUpperCase()] || 0) + importe;
+                        data.dailyGas[fecha] = (data.dailyGas[fecha] || 0) + Math.abs(importe);
+                    } else {
+                        data.stats.ing += importe; cat = '💰 Ingresos';
+                        data.ranking[desc.substring(0, 25).toUpperCase()] = (data.ranking[desc.substring(0, 25).toUpperCase()] || 0) + importe;
+                    }
+                    data.movs.push({ fecha, desc, cat, importe });
+                }
+                return data;
+            }
+        };
+
+        const UI = {
+            charts: {},
+            toggleDarkMode: () => { document.body.classList.toggle('dark-mode'); },
+            showDashboard: () => { document.getElementById('upload-area').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); },
+            updateKPIs: (stats) => {
+                document.getElementById('kpi-gastos').innerText = UTILS.fmtMoney(stats.gas);
+                document.getElementById('kpi-ingresos').innerText = UTILS.fmtMoney(stats.ing);
+                document.getElementById('kpi-balance').innerText = UTILS.fmtMoney(stats.ing - stats.gas);
+                document.getElementById('kpi-subs').innerText = stats.subs;
+                document.getElementById('kpi-tarjeta').innerText = UTILS.fmtMoney(stats.card);
+                document.getElementById('kpi-transfer').innerText = UTILS.fmtMoney(stats.trans);
+                const tasa = stats.ing > 0 ? Math.max(0, ((stats.ing - stats.gas) / stats.ing) * 100) : 0;
+                document.getElementById('gauge-percent').innerText = `${Math.round(tasa)}%`;
+                return tasa;
+            },
+            renderTable: (movs) => {
+                const html = movs.map(m => `
+                    <tr>
+                        <td class="px-6 py-4 text-xs font-mono">${m.fecha}</td>
+                        <td class="px-6 py-4 font-medium truncate max-w-[200px]">${m.desc}</td>
+                        <td class="px-6 py-4 text-xs"><span class="px-2 py-1 bg-slate-100 rounded-full">${m.cat}</span></td>
+                        <td class="px-6 py-4 text-right font-bold ${m.importe >= 0 ? 'text-green-600' : 'text-red-500'}">${UTILS.fmtMoney(m.importe)}</td>
+                    </tr>
+                `).join('');
+                document.getElementById('table-body').innerHTML = html;
+            },
+            renderTop5: (ranking) => {
+                const rankArr = Object.entries(ranking).map(([k, v]) => ({ name: k, total: v }));
+                const topG = rankArr.filter(x => x.total < 0).sort((a, b) => a.total - b.total).slice(0, 5);
+                const topI = rankArr.filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
+                const rowH = (i, c) => `<div class="flex justify-between py-2 border-b text-xs"><span class="truncate w-2/3 font-semibold uppercase">${i.name}</span><span class="font-bold ${c}">${UTILS.fmtMoney(i.total)}</span></div>`;
+                document.getElementById('top-gastos-list').innerHTML = topG.map(x => rowH(x, 'text-red-600')).join('');
+                document.getElementById('top-ingresos-list').innerHTML = topI.map(x => rowH(x, 'text-green-600')).join('');
+            },
+            renderHeatmap: (dailyGas) => {
+                const heatDiv = document.getElementById('heatmap'); heatDiv.innerHTML = '';
+                for (let i = 89; i >= 0; i--) {
+                    let d = new Date(); d.setDate(new Date().getDate() - i);
+                    let ds = d.toLocaleDateString('es-ES');
+                    let val = dailyGas[ds] || 0;
+                    // FIX: Restaurado bg-red-100 para valores bajos
+                    let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-300' : val > 0 ? 'bg-red-100' : 'bg-slate-100';
+                    let dayEl = document.createElement('div'); dayEl.className = `heat-day ${color}`; dayEl.title = `${ds}: ${UTILS.fmtMoney(val)}`;
+                    heatDiv.appendChild(dayEl);
+                }
+            },
+            renderCharts: (stats, catTotals, movs, tasaAhorro) => {
+                ['chart-gauge', 'chart-pie', 'chart-line'].forEach(id => { if (UI.charts[id]) UI.charts[id].destroy(); });
+                UI.charts['chart-gauge'] = new Chart(document.getElementById('chart-gauge'), {
+                    type: 'doughnut',
+                    data: { datasets: [{ data: [tasaAhorro, 100 - tasaAhorro], backgroundColor: ['#4f46e5', '#e2e8f0'], borderWidth: 0, circumference: 180, rotation: 270, cutout: '85%' }] },
+                    options: { maintainAspectRatio: false, plugins: { tooltip: { enabled: false } } }
+                });
+                UI.charts['chart-pie'] = new Chart(document.getElementById('chart-pie'), {
+                    type: 'doughnut',
+                    data: { labels: Object.keys(catTotals), datasets: [{ data: Object.values(catTotals), backgroundColor: CONFIG.colors, borderWidth: 0, hoverOffset: 30 }] },
+                    options: { maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '75%' }
+                });
+                let acc = 0; const pts = movs.map(m => { acc += m.importe; return acc; });
+                UI.charts['chart-line'] = new Chart(document.getElementById('chart-line'), {
+                    type: 'line',
+                    data: { labels: movs.map(m => m.fecha.substring(0, 5)), datasets: [{ label: 'Saldo', data: pts, borderColor: '#4f46e5', borderWidth: 2, tension: 0.4, fill: true, backgroundColor: 'rgba(79, 70, 229, 0.1)', pointRadius: 0 }] },
+                    options: { maintainAspectRatio: false }
+                });
+                google.charts.setOnLoadCallback(() => {
+                    const data = new google.visualization.DataTable();
+                    data.addColumn('string', 'From'); data.addColumn('string', 'To'); data.addColumn('number', 'Importe');
+                    const rows = [['Ingresos', 'Total Disponible', Math.round(stats.ing)]];
+                    for (const [cat, total] of Object.entries(catTotals)) { rows.push(['Total Disponible', cat, Math.round(total)]); }
+                    if (stats.ing - stats.gas > 0) rows.push(['Total Disponible', '💰 Ahorro', Math.round(stats.ing - stats.gas)]);
+                    data.addRows(rows);
+                    new google.visualization.Sankey(document.getElementById('sankey-container')).draw(data, { sankey: { node: { label: { fontSize: 11, fontWeight: 'bold' } }, link: { colorMode: 'gradient' } } });
+                });
+            }
+        };
+
+        const App = {
+            init: () => {
+                google.charts.load('current', {'packages':['sankey']});
+                App.setupListeners();
+            },
+            setupListeners: () => {
+                document.getElementById('btn-theme').addEventListener('click', UI.toggleDarkMode);
+                document.getElementById('file-input').addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const r = new FileReader();
+                    r.onload = ev => {
+                        const rows = XLSX.utils.sheet_to_json(XLSX.read(ev.target.result, { type: 'array' }).Sheets[XLSX.read(ev.target.result, { type: 'array' }).SheetNames[0]], { header: 1, defval: '' });
+                        const processedData = DataEngine.processRows(rows);
+                        if (processedData) { App.renderDashboard(processedData); document.getElementById('btn-screenshot').classList.remove('hidden'); }
+                    };
+                    r.readAsArrayBuffer(file);
+                });
+                document.getElementById('btn-screenshot').addEventListener('click', async () => {
+                    document.querySelectorAll('.no-export').forEach(el => el.style.display = 'none');
+                    const canvas = await html2canvas(document.body, { backgroundColor: document.body.classList.contains('dark-mode') ? '#0f172a' : '#f8fafc', scale: 2 });
+                    const link = document.createElement('a'); link.download = `MyFinance_Report.png`; link.href = canvas.toDataURL(); link.click();
+                    document.querySelectorAll('.no-export').forEach(el => el.style.display = '');
+                });
+            },
+            renderDashboard: (data) => {
+                UI.showDashboard();
+                const tasaAhorro = UI.updateKPIs(data.stats);
+                UI.renderTable(data.movs);
+                UI.renderHeatmap(data.dailyGas);
+                UI.renderTop5(data.ranking);
+                UI.renderCharts(data.stats, data.catTotals, data.movs, tasaAhorro);
+            }
+        };
+
+        App.init();
+    </script>
+</body>
+</html>
