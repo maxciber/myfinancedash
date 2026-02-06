@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFinance Local Dashboard (v15.2 - Heatmap Fix)</title>
+    <title>MyFinance Local Dashboard (v15.3 - Web Ready)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -52,8 +52,10 @@
             <div>
                 <h1 class="text-3xl font-bold text-slate-800 tracking-tight">MyFinance Local Dashboard 📊</h1>
                 <p class="text-slate-500 mt-1">Control Financiero 100% Privado</p>
+                <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-wider mt-1 no-export">🛡️ Procesamiento local: tus datos no salen de este navegador</p>
             </div>
             <button id="btn-theme" class="btn-camera no-export" title="Cambiar Tema"><span>🌓</span></button>
+            <button id="btn-download" class="btn-camera no-export" title="Descargar copia local HTML"><span>📥</span></button>
             <button id="btn-screenshot" class="btn-camera hidden no-export"><span>📸</span> Exportar PNG</button>
         </div>
         <div class="mt-4 md:mt-0 bg-white px-4 py-2 rounded-full border border-slate-200 text-xs font-semibold text-slate-500 shadow-sm no-export">🔒 Modo Seguro: Datos Locales</div>
@@ -223,6 +225,17 @@
         const UI = {
             charts: {},
             toggleDarkMode: () => { document.body.classList.toggle('dark-mode'); },
+            // FUNCIÓN DE DESCARGA
+            downloadApp: () => {
+                const html = document.documentElement.outerHTML;
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'MyFinance_Dashboard_v15.3.html';
+                a.click();
+                URL.revokeObjectURL(url);
+            },
             showDashboard: () => { document.getElementById('upload-area').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); },
             updateKPIs: (stats) => {
                 document.getElementById('kpi-gastos').innerText = UTILS.fmtMoney(stats.gas);
@@ -260,7 +273,6 @@
                     let d = new Date(); d.setDate(new Date().getDate() - i);
                     let ds = d.toLocaleDateString('es-ES');
                     let val = dailyGas[ds] || 0;
-                    // FIX: Restaurado bg-red-100 para valores bajos
                     let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-300' : val > 0 ? 'bg-red-100' : 'bg-slate-100';
                     let dayEl = document.createElement('div'); dayEl.className = `heat-day ${color}`; dayEl.title = `${ds}: ${UTILS.fmtMoney(val)}`;
                     heatDiv.appendChild(dayEl);
@@ -303,6 +315,7 @@
             },
             setupListeners: () => {
                 document.getElementById('btn-theme').addEventListener('click', UI.toggleDarkMode);
+                document.getElementById('btn-download').addEventListener('click', UI.downloadApp);
                 document.getElementById('file-input').addEventListener('change', async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -334,5 +347,4 @@
         App.init();
     </script>
 </body>
-
 </html>
