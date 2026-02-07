@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFinance Local Dashboard (v15.3 - Web Ready)</title>
+    <title>MyFinance Local Dashboard (v16.0 - Sortable Table)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -30,10 +30,11 @@
         body.dark-mode .text-slate-800 { color: #f8fafc !important; }
         body.dark-mode .heat-day.bg-slate-100 { background-color: #334155 !important; border-color: #475569; }
         body.dark-mode .btn-camera { background-color: #1e293b; color: #818cf8; border-color: #818cf8; }
-        body.dark-mode .bg-indigo-50 { background-color: rgba(79, 70, 229, 0.2) !important; border-color: rgba(79, 70, 229, 0.3) !important; }
-        body.dark-mode .bg-orange-50 { background-color: rgba(249, 115, 22, 0.2) !important; border-color: rgba(249, 115, 22, 0.3) !important; }
-        body.dark-mode .text-indigo-900 { color: #e0e7ff !important; }
-        body.dark-mode .text-orange-900 { color: #ffedd5 !important; }
+        
+        /* TABLA ORDENABLE */
+        th.sortable { cursor: pointer; user-select: none; position: relative; }
+        th.sortable:hover { background-color: rgba(79, 70, 229, 0.05); }
+        body.dark-mode th.sortable:hover { background-color: rgba(255, 255, 255, 0.05); }
 
         .heatmap-container { display: flex; flex-wrap: wrap; gap: 4px; }
         .heat-day { width: 14px; height: 14px; border-radius: 3px; cursor: pointer; transition: transform 0.1s; border: 1px solid rgba(0,0,0,0.03); }
@@ -133,11 +134,16 @@
         </div>
 
         <div class="card overflow-hidden no-export">
-            <h3 class="font-bold text-slate-700 mb-6">📝 Detalle de movimientos</h3>
+            <h3 class="font-bold text-slate-700 mb-6">📝 Detalle de movimientos (Haz clic en Fecha o Importe para ordenar)</h3>
             <div class="overflow-auto max-h-[500px] custom-scroll">
                 <table class="w-full text-sm text-left text-slate-600">
                     <thead class="bg-slate-50 text-slate-700 font-bold uppercase text-xs sticky top-0 z-10 shadow-sm">
-                        <tr><th class="px-6 py-4">Fecha</th><th class="px-6 py-4">Concepto</th><th class="px-6 py-4">Categoría</th><th class="px-6 py-4 text-right">Importe</th></tr>
+                        <tr>
+                            <th id="th-fecha" class="px-6 py-4 sortable">Fecha <span class="sort-icon">▼</span></th>
+                            <th class="px-6 py-4">Concepto</th>
+                            <th class="px-6 py-4">Categoría</th>
+                            <th id="th-importe" class="px-6 py-4 text-right sortable">Importe <span class="sort-icon"></span></th>
+                        </tr>
                     </thead>
                     <tbody id="table-body" class="divide-y divide-slate-100 bg-white"></tbody>
                 </table>
@@ -162,14 +168,21 @@
         const UTILS = {
             fmtMoney: (n) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }),
             parseDate: (val) => {
-                if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000)).toLocaleDateString('es-ES');
-                return String(val);
+                if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000));
+                if (typeof val === 'string') {
+                    const parts = val.split('/');
+                    if(parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
+                }
+                return new Date(val);
             },
             parseImporte: (val) => {
                 let clean = String(val).replace(/[^\d,.-]/g, '').replace(',', '.');
                 return parseFloat(clean);
             }
         };
+
+        let rawDataStore = null; // Guardamos los datos para re-ordenar
+        let sortConfig = { key: 'fecha', desc: true };
 
         const DataEngine = {
             detectColumns: (rows) => {
@@ -201,8 +214,9 @@
                     let importe = UTILS.parseImporte(row[colMap.importe]);
                     if (isNaN(importe)) continue;
                     let cat = '📂 Otros';
-                    let rawFecha = row[colMap.fecha];
-                    let fecha = UTILS.parseDate(rawFecha);
+                    let dateObj = UTILS.parseDate(row[colMap.fecha]);
+                    let fechaStr = dateObj.toLocaleDateString('es-ES');
+                    
                     if (importe < 0) {
                         data.stats.gas += Math.abs(importe);
                         let lowerDesc = desc.toLowerCase();
@@ -211,12 +225,12 @@
                         if (['tarjeta', 'pay', 'bizum', 'compra'].some(k => lowerDesc.includes(k))) data.stats.card += Math.abs(importe); else data.stats.trans += Math.abs(importe);
                         data.catTotals[cat] = (data.catTotals[cat] || 0) + Math.abs(importe);
                         data.ranking[desc.substring(0, 25).toUpperCase()] = (data.ranking[desc.substring(0, 25).toUpperCase()] || 0) + importe;
-                        data.dailyGas[fecha] = (data.dailyGas[fecha] || 0) + Math.abs(importe);
+                        data.dailyGas[fechaStr] = (data.dailyGas[fechaStr] || 0) + Math.abs(importe);
                     } else {
                         data.stats.ing += importe; cat = '💰 Ingresos';
                         data.ranking[desc.substring(0, 25).toUpperCase()] = (data.ranking[desc.substring(0, 25).toUpperCase()] || 0) + importe;
                     }
-                    data.movs.push({ fecha, desc, cat, importe });
+                    data.movs.push({ dateObj, fecha: fechaStr, desc, cat, importe });
                 }
                 return data;
             }
@@ -225,17 +239,39 @@
         const UI = {
             charts: {},
             toggleDarkMode: () => { document.body.classList.toggle('dark-mode'); },
-            // FUNCIÓN DE DESCARGA
             downloadApp: () => {
                 const html = document.documentElement.outerHTML;
                 const blob = new Blob([html], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = 'MyFinance_Dashboard_v15.3.html';
+                a.href = URL.createObjectURL(blob);
+                a.download = 'MyFinance_Dashboard_v16.0.html';
                 a.click();
-                URL.revokeObjectURL(url);
             },
+            
+            // NUEVA FUNCIÓN DE ORDENACIÓN (v16.0)
+            sortData: (key) => {
+                if (sortConfig.key === key) {
+                    sortConfig.desc = !sortConfig.desc;
+                } else {
+                    sortConfig.key = key;
+                    sortConfig.desc = true;
+                }
+                
+                const factor = sortConfig.desc ? -1 : 1;
+                rawDataStore.movs.sort((a, b) => {
+                    if (key === 'fecha') return (a.dateObj - b.dateObj) * factor;
+                    if (key === 'importe') return (a.importe - b.importe) * factor;
+                    return 0;
+                });
+                
+                // Actualizar iconos
+                document.querySelectorAll('.sort-icon').forEach(el => el.innerText = '');
+                const target = key === 'fecha' ? 'th-fecha' : 'th-importe';
+                document.querySelector(`#${target} .sort-icon`).innerText = sortConfig.desc ? ' ▼' : ' ▲';
+                
+                UI.renderTable(rawDataStore.movs);
+            },
+
             showDashboard: () => { document.getElementById('upload-area').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); },
             updateKPIs: (stats) => {
                 document.getElementById('kpi-gastos').innerText = UTILS.fmtMoney(stats.gas);
@@ -259,14 +295,6 @@
                 `).join('');
                 document.getElementById('table-body').innerHTML = html;
             },
-            renderTop5: (ranking) => {
-                const rankArr = Object.entries(ranking).map(([k, v]) => ({ name: k, total: v }));
-                const topG = rankArr.filter(x => x.total < 0).sort((a, b) => a.total - b.total).slice(0, 5);
-                const topI = rankArr.filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
-                const rowH = (i, c) => `<div class="flex justify-between py-2 border-b text-xs"><span class="truncate w-2/3 font-semibold uppercase">${i.name}</span><span class="font-bold ${c}">${UTILS.fmtMoney(i.total)}</span></div>`;
-                document.getElementById('top-gastos-list').innerHTML = topG.map(x => rowH(x, 'text-red-600')).join('');
-                document.getElementById('top-ingresos-list').innerHTML = topI.map(x => rowH(x, 'text-green-600')).join('');
-            },
             renderHeatmap: (dailyGas) => {
                 const heatDiv = document.getElementById('heatmap'); heatDiv.innerHTML = '';
                 for (let i = 89; i >= 0; i--) {
@@ -277,6 +305,14 @@
                     let dayEl = document.createElement('div'); dayEl.className = `heat-day ${color}`; dayEl.title = `${ds}: ${UTILS.fmtMoney(val)}`;
                     heatDiv.appendChild(dayEl);
                 }
+            },
+            renderTop5: (ranking) => {
+                const rankArr = Object.entries(ranking).map(([k, v]) => ({ name: k, total: v }));
+                const topG = rankArr.filter(x => x.total < 0).sort((a, b) => a.total - b.total).slice(0, 5);
+                const topI = rankArr.filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
+                const rowH = (i, c) => `<div class="flex justify-between py-2 border-b text-xs"><span class="truncate w-2/3 font-semibold uppercase">${i.name}</span><span class="font-bold ${c}">${UTILS.fmtMoney(i.total)}</span></div>`;
+                document.getElementById('top-gastos-list').innerHTML = topG.map(x => rowH(x, 'text-red-600')).join('');
+                document.getElementById('top-ingresos-list').innerHTML = topI.map(x => rowH(x, 'text-green-600')).join('');
             },
             renderCharts: (stats, catTotals, movs, tasaAhorro) => {
                 ['chart-gauge', 'chart-pie', 'chart-line'].forEach(id => { if (UI.charts[id]) UI.charts[id].destroy(); });
@@ -290,10 +326,12 @@
                     data: { labels: Object.keys(catTotals), datasets: [{ data: Object.values(catTotals), backgroundColor: CONFIG.colors, borderWidth: 0, hoverOffset: 30 }] },
                     options: { maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '75%' }
                 });
-                let acc = 0; const pts = movs.map(m => { acc += m.importe; return acc; });
+                // Evolución saldo (usar orden cronológico ascendente para esta gráfica)
+                const cronoMovs = [...movs].sort((a,b) => a.dateObj - b.dateObj);
+                let acc = 0; const pts = cronoMovs.map(m => { acc += m.importe; return acc; });
                 UI.charts['chart-line'] = new Chart(document.getElementById('chart-line'), {
                     type: 'line',
-                    data: { labels: movs.map(m => m.fecha.substring(0, 5)), datasets: [{ label: 'Saldo', data: pts, borderColor: '#4f46e5', borderWidth: 2, tension: 0.4, fill: true, backgroundColor: 'rgba(79, 70, 229, 0.1)', pointRadius: 0 }] },
+                    data: { labels: cronoMovs.map(m => m.fecha.substring(0, 5)), datasets: [{ label: 'Saldo', data: pts, borderColor: '#4f46e5', borderWidth: 2, tension: 0.4, fill: true, backgroundColor: 'rgba(79, 70, 229, 0.1)', pointRadius: 0 }] },
                     options: { maintainAspectRatio: false }
                 });
                 google.charts.setOnLoadCallback(() => {
@@ -316,6 +354,10 @@
             setupListeners: () => {
                 document.getElementById('btn-theme').addEventListener('click', UI.toggleDarkMode);
                 document.getElementById('btn-download').addEventListener('click', UI.downloadApp);
+                // Listeners Tabla Interactiva (v16.0)
+                document.getElementById('th-fecha').addEventListener('click', () => UI.sortData('fecha'));
+                document.getElementById('th-importe').addEventListener('click', () => UI.sortData('importe'));
+
                 document.getElementById('file-input').addEventListener('change', async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -323,7 +365,12 @@
                     r.onload = ev => {
                         const rows = XLSX.utils.sheet_to_json(XLSX.read(ev.target.result, { type: 'array' }).Sheets[XLSX.read(ev.target.result, { type: 'array' }).SheetNames[0]], { header: 1, defval: '' });
                         const processedData = DataEngine.processRows(rows);
-                        if (processedData) { App.renderDashboard(processedData); document.getElementById('btn-screenshot').classList.remove('hidden'); }
+                        if (processedData) { 
+                            rawDataStore = processedData; // Guardar datos
+                            UI.sortData('fecha'); // Orden inicial descendente
+                            App.renderDashboard(processedData); 
+                            document.getElementById('btn-screenshot').classList.remove('hidden'); 
+                        }
                     };
                     r.readAsArrayBuffer(file);
                 });
@@ -337,7 +384,6 @@
             renderDashboard: (data) => {
                 UI.showDashboard();
                 const tasaAhorro = UI.updateKPIs(data.stats);
-                UI.renderTable(data.movs);
                 UI.renderHeatmap(data.dailyGas);
                 UI.renderTop5(data.ranking);
                 UI.renderCharts(data.stats, data.catTotals, data.movs, tasaAhorro);
@@ -348,4 +394,3 @@
     </script>
 </body>
 </html>
-
