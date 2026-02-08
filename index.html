@@ -3,15 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFinance Local Dashboard (v16.0 - Sortable Table)</title>
+    <title>My Finance Dash | v17.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; transition: background-color 0.3s, color 0.3s; }
+        
+        :root {
+            --primary-brand: #3b82f6;
+            --success-brand: #10b981;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; transition: background-color 0.3s, color 0.3s; margin: 0; }
+
+        /* HEADER */
+        header.brand-header {
+            background: linear-gradient(to bottom, #1e293b, #0f172a);
+            padding: 2.5rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+            color: #f8fafc;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-svg { width: 70px; height: 70px; margin-bottom: 10px; display: inline-block; }
+        .rayo-animado { 
+            stroke-dasharray: 100; animation: flash 2.5s infinite; 
+            filter: drop-shadow(0 0 8px var(--success-brand)); 
+        }
+        @keyframes flash { 0%, 100% { opacity: 0.3; stroke-width: 4; } 50% { opacity: 1; stroke-width: 6; } }
+
+        .brand-title { font-size: 2.5rem; margin: 0; font-weight: 800; letter-spacing: -1px; color: white; }
+        .brand-slogan { color: var(--success-brand); font-size: 0.9rem; margin-top: 5px; font-weight: 600; letter-spacing: 1px; }
+
+        .social-nav { margin-top: 20px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .social-link {
+            text-decoration: none; color: #94a3b8; font-size: 0.75rem;
+            padding: 6px 14px; border-radius: 20px; border: 1px solid #334155;
+            background: rgba(255,255,255,0.05); transition: 0.3s; font-weight: 500;
+        }
+        .social-link:hover { background: var(--primary-brand); color: white; transform: translateY(-2px); border-color: white; }
+
+        /* ESTILOS GENERALES */
         .card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 24px; border: 1px solid #e2e8f0; transition: background-color 0.3s, border-color 0.3s; }
         .btn-upload { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; padding: 14px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); transition: all 0.2s; }
         .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4); }
@@ -32,7 +69,7 @@
         body.dark-mode .btn-camera { background-color: #1e293b; color: #818cf8; border-color: #818cf8; }
         
         /* TABLA ORDENABLE */
-        th.sortable { cursor: pointer; user-select: none; position: relative; }
+        th.sortable { cursor: pointer; user-select: none; position: relative; transition: background 0.2s; }
         th.sortable:hover { background-color: rgba(79, 70, 229, 0.05); }
         body.dark-mode th.sortable:hover { background-color: rgba(255, 255, 255, 0.05); }
 
@@ -46,24 +83,32 @@
         body.dark-mode .custom-scroll::-webkit-scrollbar-thumb { background: #475569; }
     </style>
 </head>
-<body class="p-6 md:p-10">
+<body>
 
-    <div class="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row justify-between items-center">
-        <div class="flex items-center gap-4">
-            <div>
-                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">MyFinance Local Dashboard 📊</h1>
-                <p class="text-slate-500 mt-1">Control Financiero 100% Privado</p>
-                <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-wider mt-1 no-export">🛡️ Procesamiento local: tus datos no salen de este navegador</p>
-            </div>
-            <button id="btn-theme" class="btn-camera no-export" title="Cambiar Tema"><span>🌓</span></button>
-            <button id="btn-download" class="btn-camera no-export" title="Descargar copia local HTML"><span>📥</span></button>
-            <button id="btn-screenshot" class="btn-camera hidden no-export"><span>📸</span> Exportar PNG</button>
-        </div>
-        <div class="mt-4 md:mt-0 bg-white px-4 py-2 rounded-full border border-slate-200 text-xs font-semibold text-slate-500 shadow-sm no-export">🔒 Modo Seguro: Datos Locales</div>
+    <header class="brand-header no-export">
+        <svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 5L15 20V45C15 67.5 30 88 50 95C70 88 85 67.5 85 45V20L50 5Z" fill="#1e3a8a" stroke="#3b82f6" stroke-width="2"/>
+            <path class="rayo-animado" d="M25 60L45 40L60 55L85 25" stroke="#10b981" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h1 class="brand-title">My Finance Dash</h1>
+        <div class="brand-slogan">🛡️ PRIVACIDAD 100% LOCAL | SIN NUBES</div>
+        
+        <nav class="social-nav">
+            <a href="https://t.me/myfinancedash" target="_blank" class="social-link">📢 Telegram</a>
+            <a href="https://github.com/maxciber/myfinancedash" target="_blank" class="social-link">💻 GitHub</a>
+            <a href="https://ko-fi.com/myfinancedash" target="_blank" class="social-link">☕ Ko-fi</a>
+            <a href="https://x.com/myfinancedash" target="_blank" class="social-link">🐦 Twitter</a>
+        </nav>
+    </header>
+
+    <div class="max-w-7xl mx-auto mb-6 flex justify-center gap-4 no-export">
+        <button id="btn-theme" class="btn-camera" title="Cambiar Tema"><span>🌓</span> Cambiar Modo</button>
+        <button id="btn-download" class="btn-camera" title="Descargar copia local HTML"><span>📥</span> Guardar HTML</button>
+        <button id="btn-screenshot" class="btn-camera hidden"><span>📸</span> Exportar Imagen</button>
     </div>
 
-    <div id="upload-area" class="max-w-3xl mx-auto mt-16 text-center no-export">
-        <div class="bg-white p-12 rounded-2xl shadow-xl border-2 border-slate-200 border-dashed transition-colors">
+    <div id="upload-area" class="max-w-3xl mx-auto mt-10 text-center no-export p-6">
+        <div class="bg-white p-12 rounded-2xl shadow-xl border-2 border-slate-200 border-dashed transition-colors card">
             <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">📂</div>
             <h2 class="text-2xl font-bold mb-3 text-slate-800">Analiza tus gastos en segundos</h2>
             <p class="text-slate-500 mb-8 max-w-md mx-auto">Arrastra tu archivo Excel aquí o selecciónalo para ver tu informe detallado.</p>
@@ -71,7 +116,7 @@
         </div>
     </div>
 
-    <div id="dashboard" class="max-w-7xl mx-auto hidden pb-12">
+    <div id="dashboard" class="max-w-7xl mx-auto hidden pb-12 p-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="card border-l-4 border-red-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Gastos Totales</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-gastos">0 €</p></div>
             <div class="card border-l-4 border-green-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos Totales</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-ingresos">0 €</p></div>
@@ -134,14 +179,14 @@
         </div>
 
         <div class="card overflow-hidden no-export">
-            <h3 class="font-bold text-slate-700 mb-6">📝 Detalle de movimientos (Haz clic en Fecha o Importe para ordenar)</h3>
+            <h3 class="font-bold text-slate-700 mb-6">📝 Detalle de movimientos (Haz clic en los encabezados para ordenar)</h3>
             <div class="overflow-auto max-h-[500px] custom-scroll">
                 <table class="w-full text-sm text-left text-slate-600">
                     <thead class="bg-slate-50 text-slate-700 font-bold uppercase text-xs sticky top-0 z-10 shadow-sm">
                         <tr>
                             <th id="th-fecha" class="px-6 py-4 sortable">Fecha <span class="sort-icon">▼</span></th>
-                            <th class="px-6 py-4">Concepto</th>
-                            <th class="px-6 py-4">Categoría</th>
+                            <th id="th-concepto" class="px-6 py-4 sortable">Concepto <span class="sort-icon"></span></th>
+                            <th id="th-categoria" class="px-6 py-4 sortable">Categoría <span class="sort-icon"></span></th>
                             <th id="th-importe" class="px-6 py-4 text-right sortable">Importe <span class="sort-icon"></span></th>
                         </tr>
                     </thead>
@@ -181,7 +226,7 @@
             }
         };
 
-        let rawDataStore = null; // Guardamos los datos para re-ordenar
+        let rawDataStore = null; 
         let sortConfig = { key: 'fecha', desc: true };
 
         const DataEngine = {
@@ -244,11 +289,10 @@
                 const blob = new Blob([html], { type: 'text/html' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'MyFinance_Dashboard_v16.0.html';
+                a.download = 'MyFinance_Dashboard_v17.1.html';
                 a.click();
             },
             
-            // NUEVA FUNCIÓN DE ORDENACIÓN (v16.0)
             sortData: (key) => {
                 if (sortConfig.key === key) {
                     sortConfig.desc = !sortConfig.desc;
@@ -261,13 +305,18 @@
                 rawDataStore.movs.sort((a, b) => {
                     if (key === 'fecha') return (a.dateObj - b.dateObj) * factor;
                     if (key === 'importe') return (a.importe - b.importe) * factor;
+                    if (key === 'concepto') return a.desc.localeCompare(b.desc) * factor;
+                    if (key === 'categoria') return a.cat.localeCompare(b.cat) * factor;
                     return 0;
                 });
                 
-                // Actualizar iconos
+                // Limpiar iconos
                 document.querySelectorAll('.sort-icon').forEach(el => el.innerText = '');
-                const target = key === 'fecha' ? 'th-fecha' : 'th-importe';
-                document.querySelector(`#${target} .sort-icon`).innerText = sortConfig.desc ? ' ▼' : ' ▲';
+                
+                // Poner icono en el seleccionado
+                const mapId = { 'fecha': 'th-fecha', 'importe': 'th-importe', 'concepto': 'th-concepto', 'categoria': 'th-categoria' };
+                const target = mapId[key];
+                if(target) document.querySelector(`#${target} .sort-icon`).innerText = sortConfig.desc ? ' ▼' : ' ▲';
                 
                 UI.renderTable(rawDataStore.movs);
             },
@@ -326,7 +375,6 @@
                     data: { labels: Object.keys(catTotals), datasets: [{ data: Object.values(catTotals), backgroundColor: CONFIG.colors, borderWidth: 0, hoverOffset: 30 }] },
                     options: { maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '75%' }
                 });
-                // Evolución saldo (usar orden cronológico ascendente para esta gráfica)
                 const cronoMovs = [...movs].sort((a,b) => a.dateObj - b.dateObj);
                 let acc = 0; const pts = cronoMovs.map(m => { acc += m.importe; return acc; });
                 UI.charts['chart-line'] = new Chart(document.getElementById('chart-line'), {
@@ -354,9 +402,10 @@
             setupListeners: () => {
                 document.getElementById('btn-theme').addEventListener('click', UI.toggleDarkMode);
                 document.getElementById('btn-download').addEventListener('click', UI.downloadApp);
-                // Listeners Tabla Interactiva (v16.0)
                 document.getElementById('th-fecha').addEventListener('click', () => UI.sortData('fecha'));
                 document.getElementById('th-importe').addEventListener('click', () => UI.sortData('importe'));
+                document.getElementById('th-concepto').addEventListener('click', () => UI.sortData('concepto'));
+                document.getElementById('th-categoria').addEventListener('click', () => UI.sortData('categoria'));
 
                 document.getElementById('file-input').addEventListener('change', async (e) => {
                     const file = e.target.files[0];
@@ -366,8 +415,8 @@
                         const rows = XLSX.utils.sheet_to_json(XLSX.read(ev.target.result, { type: 'array' }).Sheets[XLSX.read(ev.target.result, { type: 'array' }).SheetNames[0]], { header: 1, defval: '' });
                         const processedData = DataEngine.processRows(rows);
                         if (processedData) { 
-                            rawDataStore = processedData; // Guardar datos
-                            UI.sortData('fecha'); // Orden inicial descendente
+                            rawDataStore = processedData; 
+                            UI.sortData('fecha'); 
                             App.renderDashboard(processedData); 
                             document.getElementById('btn-screenshot').classList.remove('hidden'); 
                         }
