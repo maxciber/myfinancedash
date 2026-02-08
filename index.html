@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Finance Dash | v17.1</title>
+    <title>My Finance Dash | v17.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -16,6 +16,8 @@
         :root {
             --primary-brand: #3b82f6;
             --success-brand: #10b981;
+            --tag-bg: #f1f5f9;
+            --tag-text: #475569;
         }
 
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; transition: background-color 0.3s, color 0.3s; margin: 0; }
@@ -48,14 +50,14 @@
         }
         .social-link:hover { background: var(--primary-brand); color: white; transform: translateY(-2px); border-color: white; }
 
-        /* ESTILOS GENERALES */
+        /* ESTILOS CARD Y BOTONES */
         .card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 24px; border: 1px solid #e2e8f0; transition: background-color 0.3s, border-color 0.3s; }
         .btn-upload { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; padding: 14px 28px; border-radius: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); transition: all 0.2s; }
         .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4); }
         .btn-camera { background: white; color: #4f46e5; border: 2px solid #4f46e5; padding: 8px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
         
-        /* MODO OSCURO */
-        body.dark-mode { background-color: #0f172a; color: #cbd5e1; }
+        /* MODO OSCURO (Variables Centralizadas) */
+        body.dark-mode { background-color: #0f172a; color: #cbd5e1; --tag-bg: #334155; --tag-text: #e2e8f0; }
         body.dark-mode .card { background-color: #1e293b; border-color: #334155; }
         body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 { color: #f1f5f9 !important; }
         body.dark-mode p.text-slate-500 { color: #94a3b8 !important; }
@@ -68,7 +70,17 @@
         body.dark-mode .heat-day.bg-slate-100 { background-color: #334155 !important; border-color: #475569; }
         body.dark-mode .btn-camera { background-color: #1e293b; color: #818cf8; border-color: #818cf8; }
         
-        /* TABLA ORDENABLE */
+        /* SOLUCIÓN ETIQUETAS CATEGORÍA */
+        .cat-tag {
+            background-color: var(--tag-bg);
+            color: var(--tag-text);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
         th.sortable { cursor: pointer; user-select: none; position: relative; transition: background 0.2s; }
         th.sortable:hover { background-color: rgba(79, 70, 229, 0.05); }
         body.dark-mode th.sortable:hover { background-color: rgba(255, 255, 255, 0.05); }
@@ -199,15 +211,16 @@
     <script>
         const CONFIG = {
             categories: {
-                '🛒 Supermercado': ['mercadona', 'lidl', 'carrefour', 'dia', 'consum', 'alcampo', 'super'],
-                '⛽ Transporte': ['repsol', 'cepsa', 'galp', 'uber', 'cabify', 'renfe', 'gasolinera'],
-                '📺 Suscripciones': ['netflix', 'spotify', 'hbo', 'disney', 'prime', 'google storage', 'gym'],
-                '🍔 Restauración': ['restaurante', 'bar', 'cafe', 'mcdonalds', 'burger', 'glovo', 'just eat', 'vips'],
-                '🏠 Hogar/Facturas': ['iberdrola', 'endesa', 'naturgy', 'agua', 'luz', 'gas', 'internet', 'vodafone'],
-                '📦 Compras Online': ['amazon', 'aliexpress', 'zara', 'decathlon'],
-                '💳 Digital/Bancos': ['bizum', 'paypal', 'transferencia', 'revolut']
+                '🛒 Supermercado': ['mercadona', 'lidl', 'carrefour', 'dia', 'consum', 'alcampo', 'super', 'hipercor', 'ahorramas', 'aldi'],
+                '⛽ Transporte': ['repsol', 'cepsa', 'galp', 'uber', 'cabify', 'renfe', 'gasolinera', 'shell', 'bp', 'taxi', 'emt', 'metro'],
+                '📺 Suscripciones': ['netflix', 'spotify', 'hbo', 'disney', 'prime', 'google storage', 'gym', 'apple.com', 'dazn', 'skyshowtime', 'playstation', 'xbox'],
+                '🍔 Restauración': ['restaurante', 'bar', 'cafe', 'mcdonalds', 'burger', 'glovo', 'just eat', 'vips', 'starbucks', 'foster', 'goiko', 'taco bell', 'domino', 'popeyes'],
+                '🏠 Hogar/Facturas': ['iberdrola', 'endesa', 'naturgy', 'agua', 'luz', 'gas', 'internet', 'vodafone', 'movistar', 'orange', 'digi', 'ikea', 'leroy', 'aki', 'bauhaus', 'bricomart'],
+                '📦 Moda y Compras': ['amazon', 'aliexpress', 'zara', 'decathlon', 'primark', 'h&m', 'mango', 'shein', 'pull and bear', 'stradivarius', 'nike', 'adidas', 'fnac', 'casa del libro', 'primor', 'druni', 'sephora'],
+                '🏥 Salud y Ocio': ['farmacia', 'hospital', 'dentista', 'cine', 'entradas', 'ticketmaster', 'mutua', 'mapfre', 'allianz'],
+                '💳 Digital/Bancos': ['bizum', 'paypal', 'transferencia', 'revolut', 'hipoteca', 'prestamo', 'comision', 'seguro']
             },
-            colors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#6366f1', '#8b5cf6']
+            colors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#6366f1', '#a855f7', '#ec4899']
         };
 
         const UTILS = {
@@ -289,7 +302,7 @@
                 const blob = new Blob([html], { type: 'text/html' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'MyFinance_Dashboard_v17.1.html';
+                a.download = 'MyFinance_Dashboard_v17.3.html';
                 a.click();
             },
             
@@ -310,10 +323,7 @@
                     return 0;
                 });
                 
-                // Limpiar iconos
                 document.querySelectorAll('.sort-icon').forEach(el => el.innerText = '');
-                
-                // Poner icono en el seleccionado
                 const mapId = { 'fecha': 'th-fecha', 'importe': 'th-importe', 'concepto': 'th-concepto', 'categoria': 'th-categoria' };
                 const target = mapId[key];
                 if(target) document.querySelector(`#${target} .sort-icon`).innerText = sortConfig.desc ? ' ▼' : ' ▲';
@@ -338,7 +348,7 @@
                     <tr>
                         <td class="px-6 py-4 text-xs font-mono">${m.fecha}</td>
                         <td class="px-6 py-4 font-medium truncate max-w-[200px]">${m.desc}</td>
-                        <td class="px-6 py-4 text-xs"><span class="px-2 py-1 bg-slate-100 rounded-full">${m.cat}</span></td>
+                        <td class="px-6 py-4 text-xs"><span class="cat-tag">${m.cat}</span></td>
                         <td class="px-6 py-4 text-right font-bold ${m.importe >= 0 ? 'text-green-600' : 'text-red-500'}">${UTILS.fmtMoney(m.importe)}</td>
                     </tr>
                 `).join('');
@@ -359,7 +369,7 @@
                 const rankArr = Object.entries(ranking).map(([k, v]) => ({ name: k, total: v }));
                 const topG = rankArr.filter(x => x.total < 0).sort((a, b) => a.total - b.total).slice(0, 5);
                 const topI = rankArr.filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
-                const rowH = (i, c) => `<div class="flex justify-between py-2 border-b text-xs"><span class="truncate w-2/3 font-semibold uppercase">${i.name}</span><span class="font-bold ${c}">${UTILS.fmtMoney(i.total)}</span></div>`;
+                const rowH = (i, c) => `<div class="flex justify-between py-2 border-b dark:border-slate-700 text-xs"><span class="truncate w-2/3 font-semibold uppercase">${i.name}</span><span class="font-bold ${c}">${UTILS.fmtMoney(i.total)}</span></div>`;
                 document.getElementById('top-gastos-list').innerHTML = topG.map(x => rowH(x, 'text-red-600')).join('');
                 document.getElementById('top-ingresos-list').innerHTML = topI.map(x => rowH(x, 'text-green-600')).join('');
             },
@@ -373,14 +383,14 @@
                 UI.charts['chart-pie'] = new Chart(document.getElementById('chart-pie'), {
                     type: 'doughnut',
                     data: { labels: Object.keys(catTotals), datasets: [{ data: Object.values(catTotals), backgroundColor: CONFIG.colors, borderWidth: 0, hoverOffset: 30 }] },
-                    options: { maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '75%' }
+                    options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: document.body.classList.contains('dark-mode') ? '#cbd5e1' : '#334155' } } }, cutout: '75%' }
                 });
                 const cronoMovs = [...movs].sort((a,b) => a.dateObj - b.dateObj);
                 let acc = 0; const pts = cronoMovs.map(m => { acc += m.importe; return acc; });
                 UI.charts['chart-line'] = new Chart(document.getElementById('chart-line'), {
                     type: 'line',
                     data: { labels: cronoMovs.map(m => m.fecha.substring(0, 5)), datasets: [{ label: 'Saldo', data: pts, borderColor: '#4f46e5', borderWidth: 2, tension: 0.4, fill: true, backgroundColor: 'rgba(79, 70, 229, 0.1)', pointRadius: 0 }] },
-                    options: { maintainAspectRatio: false }
+                    options: { maintainAspectRatio: false, scales: { y: { ticks: { color: document.body.classList.contains('dark-mode') ? '#94a3b8' : '#64748b' } }, x: { ticks: { color: document.body.classList.contains('dark-mode') ? '#94a3b8' : '#64748b' } } } }
                 });
                 google.charts.setOnLoadCallback(() => {
                     const data = new google.visualization.DataTable();
@@ -389,7 +399,8 @@
                     for (const [cat, total] of Object.entries(catTotals)) { rows.push(['Total Disponible', cat, Math.round(total)]); }
                     if (stats.ing - stats.gas > 0) rows.push(['Total Disponible', '💰 Ahorro', Math.round(stats.ing - stats.gas)]);
                     data.addRows(rows);
-                    new google.visualization.Sankey(document.getElementById('sankey-container')).draw(data, { sankey: { node: { label: { fontSize: 11, fontWeight: 'bold' } }, link: { colorMode: 'gradient' } } });
+                    const sankeyColors = document.body.classList.contains('dark-mode') ? '#94a3b8' : '#334155';
+                    new google.visualization.Sankey(document.getElementById('sankey-container')).draw(data, { sankey: { node: { label: { fontSize: 11, fontWeight: 'bold', color: sankeyColors } }, link: { colorMode: 'gradient' } } });
                 });
             }
         };
@@ -400,7 +411,13 @@
                 App.setupListeners();
             },
             setupListeners: () => {
-                document.getElementById('btn-theme').addEventListener('click', UI.toggleDarkMode);
+                document.getElementById('btn-theme').addEventListener('click', () => {
+                    UI.toggleDarkMode();
+                    if (rawDataStore) {
+                        UI.renderCharts(rawDataStore.stats, rawDataStore.catTotals, rawDataStore.movs, UI.updateKPIs(rawDataStore.stats));
+                        UI.renderTable(rawDataStore.movs); // Forzar repintado de etiquetas para aplicar nuevas variables CSS
+                    }
+                });
                 document.getElementById('btn-download').addEventListener('click', UI.downloadApp);
                 document.getElementById('th-fecha').addEventListener('click', () => UI.sortData('fecha'));
                 document.getElementById('th-importe').addEventListener('click', () => UI.sortData('importe'));
