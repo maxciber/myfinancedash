@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Finance Dash | v17.3</title>
+    <title>My Finance Dash | v17.4 (Time Travel)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -20,32 +20,31 @@
             --tag-text: #475569;
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; transition: background-color 0.3s, color 0.3s; margin: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; transition: background-color 0.3s, color 0.3s; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
 
         /* HEADER */
         header.brand-header {
             background: linear-gradient(to bottom, #1e293b, #0f172a);
-            padding: 2.5rem 1rem;
+            padding: 2rem 1rem;
             text-align: center;
             border-bottom: 1px solid #334155;
             color: #f8fafc;
-            margin-bottom: 2rem;
         }
         
-        .logo-svg { width: 70px; height: 70px; margin-bottom: 10px; display: inline-block; }
+        .logo-svg { width: 60px; height: 60px; margin-bottom: 10px; display: inline-block; }
         .rayo-animado { 
             stroke-dasharray: 100; animation: flash 2.5s infinite; 
             filter: drop-shadow(0 0 8px var(--success-brand)); 
         }
         @keyframes flash { 0%, 100% { opacity: 0.3; stroke-width: 4; } 50% { opacity: 1; stroke-width: 6; } }
 
-        .brand-title { font-size: 2.5rem; margin: 0; font-weight: 800; letter-spacing: -1px; color: white; }
-        .brand-slogan { color: var(--success-brand); font-size: 0.9rem; margin-top: 5px; font-weight: 600; letter-spacing: 1px; }
+        .brand-title { font-size: 2rem; margin: 0; font-weight: 800; letter-spacing: -1px; color: white; }
+        .brand-slogan { color: var(--success-brand); font-size: 0.8rem; margin-top: 5px; font-weight: 600; letter-spacing: 1px; }
 
-        .social-nav { margin-top: 20px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .social-nav { margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .social-link {
             text-decoration: none; color: #94a3b8; font-size: 0.75rem;
-            padding: 6px 14px; border-radius: 20px; border: 1px solid #334155;
+            padding: 4px 12px; border-radius: 20px; border: 1px solid #334155;
             background: rgba(255,255,255,0.05); transition: 0.3s; font-weight: 500;
         }
         .social-link:hover { background: var(--primary-brand); color: white; transform: translateY(-2px); border-color: white; }
@@ -56,7 +55,28 @@
         .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4); }
         .btn-camera { background: white; color: #4f46e5; border: 2px solid #4f46e5; padding: 8px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
         
-        /* MODO OSCURO (Variables Centralizadas) */
+        /* SELECTOR DE MES */
+        .month-select {
+            appearance: none;
+            background-color: white;
+            border: 2px solid #e2e8f0;
+            padding: 8px 32px 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+        .trend-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-left: 6px; vertical-align: middle; }
+        .trend-up-bad { background: #fee2e2; color: #991b1b; } /* Gasto sube (Malo) */
+        .trend-down-good { background: #dcfce7; color: #166534; } /* Gasto baja (Bueno) */
+        .trend-up-good { background: #dcfce7; color: #166534; } /* Ingreso sube (Bueno) */
+        .trend-down-bad { background: #fee2e2; color: #991b1b; } /* Ingreso baja (Malo) */
+
+        /* MODO OSCURO */
         body.dark-mode { background-color: #0f172a; color: #cbd5e1; --tag-bg: #334155; --tag-text: #e2e8f0; }
         body.dark-mode .card { background-color: #1e293b; border-color: #334155; }
         body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 { color: #f1f5f9 !important; }
@@ -69,22 +89,14 @@
         body.dark-mode .text-slate-800 { color: #f8fafc !important; }
         body.dark-mode .heat-day.bg-slate-100 { background-color: #334155 !important; border-color: #475569; }
         body.dark-mode .btn-camera { background-color: #1e293b; color: #818cf8; border-color: #818cf8; }
+        body.dark-mode .month-select { background-color: #1e293b; color: #f8fafc; border-color: #475569; }
         
-        /* SOLUCIÓN ETIQUETAS CATEGORÍA */
-        .cat-tag {
-            background-color: var(--tag-bg);
-            color: var(--tag-text);
-            padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
+        /* FOOTER */
+        .footer-simple { margin-top: auto; padding: 2rem; text-align: center; color: #94a3b8; font-size: 0.8rem; border-top: 1px solid #e2e8f0; }
+        body.dark-mode .footer-simple { border-color: #1e293b; color: #64748b; }
 
-        th.sortable { cursor: pointer; user-select: none; position: relative; transition: background 0.2s; }
-        th.sortable:hover { background-color: rgba(79, 70, 229, 0.05); }
-        body.dark-mode th.sortable:hover { background-color: rgba(255, 255, 255, 0.05); }
-
+        .cat-tag { background-color: var(--tag-bg); color: var(--tag-text); padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        th.sortable { cursor: pointer; user-select: none; }
         .heatmap-container { display: flex; flex-wrap: wrap; gap: 4px; }
         .heat-day { width: 14px; height: 14px; border-radius: 3px; cursor: pointer; transition: transform 0.1s; border: 1px solid rgba(0,0,0,0.03); }
         .heat-day:hover { transform: scale(1.3); z-index: 10; }
@@ -113,7 +125,7 @@
         </nav>
     </header>
 
-    <div class="max-w-7xl mx-auto mb-6 flex justify-center gap-4 no-export">
+    <div class="max-w-7xl mx-auto mt-10 mb-6 flex justify-center gap-4 no-export">
         <button id="btn-theme" class="btn-camera" title="Cambiar Tema"><span>🌓</span> Cambiar Modo</button>
         <button id="btn-download" class="btn-camera" title="Descargar copia local HTML"><span>📥</span> Guardar HTML</button>
         <button id="btn-screenshot" class="btn-camera hidden"><span>📸</span> Exportar Imagen</button>
@@ -128,16 +140,47 @@
         </div>
     </div>
 
-    <div id="dashboard" class="max-w-7xl mx-auto hidden pb-12 p-6">
+    <div id="dashboard" class="max-w-7xl mx-auto hidden mt-8 pb-12 p-6 flex-grow">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div class="flex items-center gap-3">
+                <label for="month-selector" class="font-bold text-slate-600 text-sm uppercase">📅 Periodo:</label>
+                <select id="month-selector" class="month-select shadow-sm">
+                    <option value="all">Todo el Histórico</option>
+                </select>
+            </div>
+            <div id="alert-partial" class="hidden bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg text-xs font-bold border border-yellow-200 flex items-center gap-2">
+                ⚠️ Mes en curso (Datos parciales)
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="card border-l-4 border-red-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Gastos Totales</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-gastos">0 €</p></div>
-            <div class="card border-l-4 border-green-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos Totales</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-ingresos">0 €</p></div>
-            <div class="card border-l-4 border-blue-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Balance</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-balance">0 €</p></div>
-            <div class="card border-l-4 border-purple-500"><p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Suscripciones</p><p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-subs">0</p></div>
+            <div class="card border-l-4 border-red-500">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Gastos</p>
+                <div class="flex items-end gap-2 mt-2">
+                    <p class="text-3xl font-bold text-slate-800" id="kpi-gastos">0 €</p>
+                    <span id="trend-gastos"></span>
+                </div>
+            </div>
+            <div class="card border-l-4 border-green-500">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos</p>
+                <div class="flex items-end gap-2 mt-2">
+                    <p class="text-3xl font-bold text-slate-800" id="kpi-ingresos">0 €</p>
+                    <span id="trend-ingresos"></span>
+                </div>
+            </div>
+            <div class="card border-l-4 border-blue-500">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Balance</p>
+                <p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-balance">0 €</p>
+            </div>
+            <div class="card border-l-4 border-purple-500">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Suscripciones</p>
+                <p class="text-3xl font-bold text-slate-800 mt-2" id="kpi-subs">0</p>
+            </div>
         </div>
 
         <div class="card mb-8">
-            <h3 class="font-bold text-slate-700 mb-4 text-sm flex items-center gap-2">🔥 Mapa de Calor: Intensidad de Gastos (90 días)</h3>
+            <h3 class="font-bold text-slate-700 mb-4 text-sm flex items-center gap-2">🔥 Mapa de Calor (Periodo Seleccionado)</h3>
             <div id="heatmap" class="heatmap-container"></div>
             <div class="mt-4 flex gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                 <div class="flex items-center gap-1"><div class="w-3 h-3 bg-slate-100 rounded"></div> Sin Gasto</div>
@@ -169,7 +212,7 @@
                 <div class="flex-grow min-h-[250px] relative"><canvas id="chart-pie"></canvas></div>
             </div>
             <div class="card lg:col-span-2 flex flex-col">
-                <h3 class="font-bold text-slate-700 mb-6 text-sm">📈 Evolución de Saldo</h3>
+                <h3 class="font-bold text-slate-700 mb-6 text-sm">📈 Evolución de Saldo (Periodo)</h3>
                 <div class="flex-grow min-h-[300px] relative"><canvas id="chart-line"></canvas></div>
             </div>
         </div>
@@ -191,7 +234,7 @@
         </div>
 
         <div class="card overflow-hidden no-export">
-            <h3 class="font-bold text-slate-700 mb-6">📝 Detalle de movimientos (Haz clic en los encabezados para ordenar)</h3>
+            <h3 class="font-bold text-slate-700 mb-6">📝 Detalle de movimientos</h3>
             <div class="overflow-auto max-h-[500px] custom-scroll">
                 <table class="w-full text-sm text-left text-slate-600">
                     <thead class="bg-slate-50 text-slate-700 font-bold uppercase text-xs sticky top-0 z-10 shadow-sm">
@@ -207,6 +250,10 @@
             </div>
         </div>
     </div>
+
+    <footer class="footer-simple no-export">
+        My Finance Dash | Open Source
+    </footer>
 
     <script>
         const CONFIG = {
@@ -264,7 +311,10 @@
             processRows: (rows) => {
                 const { colMap, startIdx } = DataEngine.detectColumns(rows);
                 if (startIdx === -1) return null;
-                let data = { movs: [], stats: { ing: 0, gas: 0, subs: 0, card: 0, trans: 0 }, catTotals: {}, ranking: {}, dailyGas: {} };
+                
+                let allMovs = [];
+                let monthsSet = new Set();
+
                 for (let i = startIdx; i < rows.length; i++) {
                     const row = rows[i];
                     if (!row[colMap.concepto] || !row[colMap.importe]) continue;
@@ -274,23 +324,39 @@
                     let cat = '📂 Otros';
                     let dateObj = UTILS.parseDate(row[colMap.fecha]);
                     let fechaStr = dateObj.toLocaleDateString('es-ES');
+                    let monthKey = dateObj.toISOString().slice(0, 7); // YYYY-MM
                     
+                    monthsSet.add(monthKey);
+
+                    let lowerDesc = desc.toLowerCase();
                     if (importe < 0) {
-                        data.stats.gas += Math.abs(importe);
-                        let lowerDesc = desc.toLowerCase();
                         for (const [k, v] of Object.entries(CONFIG.categories)) { if (v.some(kw => lowerDesc.includes(kw))) { cat = k; break; } }
-                        if (cat.includes('Suscripciones')) data.stats.subs++;
-                        if (['tarjeta', 'pay', 'bizum', 'compra'].some(k => lowerDesc.includes(k))) data.stats.card += Math.abs(importe); else data.stats.trans += Math.abs(importe);
-                        data.catTotals[cat] = (data.catTotals[cat] || 0) + Math.abs(importe);
-                        data.ranking[desc.substring(0, 25).toUpperCase()] = (data.ranking[desc.substring(0, 25).toUpperCase()] || 0) + importe;
-                        data.dailyGas[fechaStr] = (data.dailyGas[fechaStr] || 0) + Math.abs(importe);
                     } else {
-                        data.stats.ing += importe; cat = '💰 Ingresos';
-                        data.ranking[desc.substring(0, 25).toUpperCase()] = (data.ranking[desc.substring(0, 25).toUpperCase()] || 0) + importe;
+                        cat = '💰 Ingresos';
                     }
-                    data.movs.push({ dateObj, fecha: fechaStr, desc, cat, importe });
+                    allMovs.push({ dateObj, fecha: fechaStr, desc, cat, importe, monthKey });
                 }
-                return data;
+                return { movs: allMovs, months: Array.from(monthsSet).sort().reverse() };
+            },
+            calculateStats: (movs) => {
+                let stats = { ing: 0, gas: 0, subs: 0, card: 0, trans: 0 };
+                let catTotals = {};
+                let ranking = {};
+                let dailyGas = {};
+                
+                movs.forEach(m => {
+                    if (m.importe < 0) {
+                        stats.gas += Math.abs(m.importe);
+                        if (m.cat.includes('Suscripciones')) stats.subs++;
+                        if (['tarjeta', 'pay', 'bizum', 'compra'].some(k => m.desc.toLowerCase().includes(k))) stats.card += Math.abs(m.importe); else stats.trans += Math.abs(m.importe);
+                        catTotals[m.cat] = (catTotals[m.cat] || 0) + Math.abs(m.importe);
+                        dailyGas[m.fecha] = (dailyGas[m.fecha] || 0) + Math.abs(m.importe);
+                    } else {
+                        stats.ing += m.importe;
+                    }
+                    ranking[m.desc.substring(0, 25).toUpperCase()] = (ranking[m.desc.substring(0, 25).toUpperCase()] || 0) + m.importe;
+                });
+                return { stats, catTotals, ranking, dailyGas };
             }
         };
 
@@ -302,7 +368,7 @@
                 const blob = new Blob([html], { type: 'text/html' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'MyFinance_Dashboard_v17.3.html';
+                a.download = 'MyFinance_Dashboard_v17.4.html';
                 a.click();
             },
             
@@ -313,9 +379,9 @@
                     sortConfig.key = key;
                     sortConfig.desc = true;
                 }
-                
                 const factor = sortConfig.desc ? -1 : 1;
-                rawDataStore.movs.sort((a, b) => {
+                const currentMovs = App.getCurrentFilteredMovs();
+                currentMovs.sort((a, b) => {
                     if (key === 'fecha') return (a.dateObj - b.dateObj) * factor;
                     if (key === 'importe') return (a.importe - b.importe) * factor;
                     if (key === 'concepto') return a.desc.localeCompare(b.desc) * factor;
@@ -328,17 +394,45 @@
                 const target = mapId[key];
                 if(target) document.querySelector(`#${target} .sort-icon`).innerText = sortConfig.desc ? ' ▼' : ' ▲';
                 
-                UI.renderTable(rawDataStore.movs);
+                UI.renderTable(currentMovs);
             },
 
             showDashboard: () => { document.getElementById('upload-area').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); },
-            updateKPIs: (stats) => {
+            
+            updateKPIs: (stats, prevStats = null) => {
                 document.getElementById('kpi-gastos').innerText = UTILS.fmtMoney(stats.gas);
                 document.getElementById('kpi-ingresos').innerText = UTILS.fmtMoney(stats.ing);
                 document.getElementById('kpi-balance').innerText = UTILS.fmtMoney(stats.ing - stats.gas);
                 document.getElementById('kpi-subs').innerText = stats.subs;
                 document.getElementById('kpi-tarjeta').innerText = UTILS.fmtMoney(stats.card);
                 document.getElementById('kpi-transfer').innerText = UTILS.fmtMoney(stats.trans);
+                
+                // Comparativa
+                const setTrend = (id, current, prev, isBadIfUp) => {
+                    const el = document.getElementById(id);
+                    if (!prev || prev === 0) { el.innerHTML = ''; return; }
+                    const diff = ((current - prev) / prev) * 100;
+                    if (Math.abs(diff) < 1) { el.innerHTML = ''; return; } // Diferencia insignificante
+                    const isUp = diff > 0;
+                    const isBad = isBadIfUp ? isUp : !isUp;
+                    const cssClass = isBad ? 'trend-up-bad' : 'trend-down-good'; 
+                    const arrow = isUp ? '▲' : '▼';
+                    let finalClass = '';
+                    if (id === 'trend-gastos') finalClass = isUp ? 'trend-up-bad' : 'trend-down-good';
+                    if (id === 'trend-ingresos') finalClass = isUp ? 'trend-up-good' : 'trend-down-bad';
+
+                    el.className = `trend-badge ${finalClass}`;
+                    el.innerText = `${arrow} ${Math.abs(diff).toFixed(1)}%`;
+                };
+
+                if (prevStats) {
+                    setTrend('trend-gastos', stats.gas, prevStats.gas, true);
+                    setTrend('trend-ingresos', stats.ing, prevStats.ing, false);
+                } else {
+                    document.getElementById('trend-gastos').innerHTML = '';
+                    document.getElementById('trend-ingresos').innerHTML = '';
+                }
+
                 const tasa = stats.ing > 0 ? Math.max(0, ((stats.ing - stats.gas) / stats.ing) * 100) : 0;
                 document.getElementById('gauge-percent').innerText = `${Math.round(tasa)}%`;
                 return tasa;
@@ -354,15 +448,22 @@
                 `).join('');
                 document.getElementById('table-body').innerHTML = html;
             },
-            renderHeatmap: (dailyGas) => {
+            renderHeatmap: (dailyGas, days = 90) => {
                 const heatDiv = document.getElementById('heatmap'); heatDiv.innerHTML = '';
-                for (let i = 89; i >= 0; i--) {
-                    let d = new Date(); d.setDate(new Date().getDate() - i);
-                    let ds = d.toLocaleDateString('es-ES');
-                    let val = dailyGas[ds] || 0;
-                    let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-300' : val > 0 ? 'bg-red-100' : 'bg-slate-100';
-                    let dayEl = document.createElement('div'); dayEl.className = `heat-day ${color}`; dayEl.title = `${ds}: ${UTILS.fmtMoney(val)}`;
-                    heatDiv.appendChild(dayEl);
+                const sel = document.getElementById('month-selector').value;
+                let loopDays = 90;
+                if(sel !== 'all') loopDays = 31; 
+
+                for (let i = loopDays; i >= 0; i--) {
+                   let d = new Date(); 
+                   if(sel !== 'all') { d = new Date(sel + '-01'); d.setDate(d.getDate() + (31-i)); }
+                   else { d.setDate(d.getDate() - i); }
+
+                   let ds = d.toLocaleDateString('es-ES');
+                   let val = dailyGas[ds] || 0;
+                   let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-300' : val > 0 ? 'bg-red-100' : 'bg-slate-100';
+                   let dayEl = document.createElement('div'); dayEl.className = `heat-day ${color}`; dayEl.title = `${ds}: ${UTILS.fmtMoney(val)}`;
+                   heatDiv.appendChild(dayEl);
                 }
             },
             renderTop5: (ranking) => {
@@ -410,19 +511,50 @@
                 google.charts.load('current', {'packages':['sankey']});
                 App.setupListeners();
             },
+            getCurrentFilteredMovs: () => {
+                if(!rawDataStore) return [];
+                const sel = document.getElementById('month-selector').value;
+                if (sel === 'all') return rawDataStore.movs;
+                return rawDataStore.movs.filter(m => m.monthKey === sel);
+            },
+            refreshDashboard: () => {
+                const movs = App.getCurrentFilteredMovs();
+                const processed = DataEngine.calculateStats(movs);
+                const sel = document.getElementById('month-selector').value;
+                let prevStats = null;
+                const currentYM = new Date().toISOString().slice(0, 7);
+                const alertEl = document.getElementById('alert-partial');
+                if (sel === currentYM) alertEl.classList.remove('hidden'); else alertEl.classList.add('hidden');
+
+                // CORRECCIÓN: Comparar estrictamente con el mes anterior cronológico (no mismo mes año pasado)
+                if (sel !== 'all') {
+                    let [y, m] = sel.split('-').map(Number);
+                    m--; 
+                    if (m === 0) { m = 12; y--; } // Salto de año hacia atrás
+                    const prevKey = `${y}-${String(m).padStart(2, '0')}`;
+                    const prevMovs = rawDataStore.movs.filter(k => k.monthKey === prevKey);
+                    if (prevMovs.length > 0) {
+                        prevStats = DataEngine.calculateStats(prevMovs).stats;
+                    }
+                }
+
+                const tasaAhorro = UI.updateKPIs(processed.stats, prevStats);
+                UI.renderHeatmap(processed.dailyGas);
+                UI.renderTop5(processed.ranking);
+                UI.renderCharts(processed.stats, processed.catTotals, movs, tasaAhorro);
+                UI.sortData(sortConfig.key); 
+            },
             setupListeners: () => {
                 document.getElementById('btn-theme').addEventListener('click', () => {
                     UI.toggleDarkMode();
-                    if (rawDataStore) {
-                        UI.renderCharts(rawDataStore.stats, rawDataStore.catTotals, rawDataStore.movs, UI.updateKPIs(rawDataStore.stats));
-                        UI.renderTable(rawDataStore.movs); // Forzar repintado de etiquetas para aplicar nuevas variables CSS
-                    }
+                    if (rawDataStore) App.refreshDashboard();
                 });
                 document.getElementById('btn-download').addEventListener('click', UI.downloadApp);
                 document.getElementById('th-fecha').addEventListener('click', () => UI.sortData('fecha'));
                 document.getElementById('th-importe').addEventListener('click', () => UI.sortData('importe'));
                 document.getElementById('th-concepto').addEventListener('click', () => UI.sortData('concepto'));
                 document.getElementById('th-categoria').addEventListener('click', () => UI.sortData('categoria'));
+                document.getElementById('month-selector').addEventListener('change', App.refreshDashboard);
 
                 document.getElementById('file-input').addEventListener('change', async (e) => {
                     const file = e.target.files[0];
@@ -433,8 +565,18 @@
                         const processedData = DataEngine.processRows(rows);
                         if (processedData) { 
                             rawDataStore = processedData; 
-                            UI.sortData('fecha'); 
-                            App.renderDashboard(processedData); 
+                            const sel = document.getElementById('month-selector');
+                            sel.innerHTML = '<option value="all">Todo el Histórico</option>';
+                            processedData.months.forEach(m => {
+                                const opt = document.createElement('option');
+                                opt.value = m;
+                                const [y, mon] = m.split('-');
+                                const dateName = new Date(y, mon-1).toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+                                opt.innerText = dateName.charAt(0).toUpperCase() + dateName.slice(1);
+                                sel.appendChild(opt);
+                            });
+                            UI.showDashboard();
+                            App.refreshDashboard();
                             document.getElementById('btn-screenshot').classList.remove('hidden'); 
                         }
                     };
@@ -446,13 +588,6 @@
                     const link = document.createElement('a'); link.download = `MyFinance_Report.png`; link.href = canvas.toDataURL(); link.click();
                     document.querySelectorAll('.no-export').forEach(el => el.style.display = '');
                 });
-            },
-            renderDashboard: (data) => {
-                UI.showDashboard();
-                const tasaAhorro = UI.updateKPIs(data.stats);
-                UI.renderHeatmap(data.dailyGas);
-                UI.renderTop5(data.ranking);
-                UI.renderCharts(data.stats, data.catTotals, data.movs, tasaAhorro);
             }
         };
 
