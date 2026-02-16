@@ -163,7 +163,7 @@
         }
     </style>
 </head>
-<body>
+<body class="dark-mode">
 
     <!-- MENÚ LATERAL -->
     <aside class="sidebar" id="sidebar">
@@ -182,10 +182,7 @@
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                 Dashboard
             </a>
-            <div class="nav-item" id="btn-theme-side">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                Modo Oscuro
-            </div>
+           
             <div class="nav-item" id="btn-download-side">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 Guardar App
@@ -728,10 +725,7 @@
                 UI.renderTable(movs);
             },
             setupListeners: () => {
-                document.getElementById('btn-theme-side').addEventListener('click', () => {
-                    UI.toggleDarkMode();
-                    if (rawDataStore) App.refreshDashboard();
-                });
+                
                 document.getElementById('btn-download-side').addEventListener('click', UI.downloadApp);
                 document.getElementById('btn-menu').addEventListener('click', UI.toggleMobileMenu);
                 document.getElementById('mobile-overlay').addEventListener('click', UI.toggleMobileMenu);
