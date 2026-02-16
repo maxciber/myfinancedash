@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Finance Dash | v18.3 (Interactive)</title>
+    <title>My Finance Dash | v18.4 (Dark Mode Only)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -117,7 +117,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        /* MODO OSCURO */
+        /* MODO OSCURO (ACTIVADO POR DEFECTO) */
         body.dark-mode {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #e2e8f0;
@@ -148,6 +148,12 @@
         body.dark-mode .bg-slate-50 { background-color: #1e293b !important; color: white !important; }
         body.dark-mode .bg-white { background-color: transparent !important; }
 
+        /* Fix para las opciones del desplegable en Modo Oscuro */
+        body.dark-mode select option { 
+            background-color: #1e293b; 
+            color: #e2e8f0; 
+        }
+
         /* MOBILE */
         .mobile-overlay { display: none; }
         @media (max-width: 768px) {
@@ -155,11 +161,6 @@
             .sidebar.open { transform: translateX(0); }
             .main-content { margin-left: 0 !important; }
             .mobile-overlay.open { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-        }
-	/* Fix para las opciones del desplegable en Modo Oscuro */
-        body.dark-mode select option { 
-            background-color: #1e293b; 
-            color: #e2e8f0; 
         }
     </style>
 </head>
@@ -173,7 +174,7 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg leading-tight tracking-tight">Finance<span class="text-blue-600">Dash</span></h1>
-                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V18.3 INTERACTIVE</p>
+                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V18.4 DARK</p>
             </div>
         </div>
 
@@ -182,7 +183,7 @@
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                 Dashboard
             </a>
-           
+            <!-- BOTÓN MODO OSCURO ELIMINADO -->
             <div class="nav-item" id="btn-download-side">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 Guardar App
@@ -243,17 +244,17 @@
         <!-- DASHBOARD (Hidden initially) -->
         <div id="dashboard" class="hidden max-w-6xl mx-auto space-y-6">
             
-	<!-- CONTROLES SUPERIORES -->
+            <!-- CONTROLES SUPERIORES -->
             <div class="glass-card flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-slate-800 dark:text-white">Resumen Financiero</h2>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Vista general de tus movimientos</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div id="alert-partial" class="hidden px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] font-bold uppercase rounded-full border border-yellow-200">⚠️ 			Mes Actual</div>
-                    <select id="month-selector" class="cursor-pointer bg-white/50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-			white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 font-semibold shadow-sm outline-none backdrop-blur-sm transition-colors">
-    			<option value="all">Todo el Histórico</option>
-		    </select>
+                    <div id="alert-partial" class="hidden px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] font-bold uppercase rounded-full border border-yellow-200">⚠️ Mes Actual</div>
+                    <select id="month-selector" class="cursor-pointer bg-white/50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 font-semibold shadow-sm outline-none backdrop-blur-sm transition-colors">
+                        <option value="all">Todo el Histórico</option>
+                    </select>
                 </div>
             </div>
 
@@ -283,7 +284,7 @@
                 </div>
             </div>
 
-           <!-- PAGOS DESGLOSADOS (UNIFICADO) -->
+            <!-- PAGOS DESGLOSADOS -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="glass-card flex items-center justify-between">
                     <div>
@@ -725,7 +726,14 @@
                 UI.renderTable(movs);
             },
             setupListeners: () => {
-                
+                // Sidebar & Controls
+                // ELIMINADO: Botón de tema ya no existe en HTML, así que quitamos el listener
+                /*
+                document.getElementById('btn-theme-side').addEventListener('click', () => {
+                    UI.toggleDarkMode();
+                    if (rawDataStore) App.refreshDashboard();
+                });
+                */
                 document.getElementById('btn-download-side').addEventListener('click', UI.downloadApp);
                 document.getElementById('btn-menu').addEventListener('click', UI.toggleMobileMenu);
                 document.getElementById('mobile-overlay').addEventListener('click', UI.toggleMobileMenu);
