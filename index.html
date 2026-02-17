@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Finance Dash | v18.4 (Dark Mode Only)</title>
+    <title>My Finance Dash | v19.1 (Dark Perfected)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -14,15 +14,17 @@
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
         
         :root {
-            --glass-border: rgba(255, 255, 255, 0.5);
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --tag-bg: #334155; 
+            --tag-text: #e2e8f0;
         }
 
         body { 
             font-family: 'Outfit', sans-serif; 
-            background: linear-gradient(135deg, #f0f9ff 0%, #cbebff 100%);
-            color: #1e293b; 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0; 
             margin: 0; 
             min-height: 100vh;
             overflow-x: hidden;
@@ -35,9 +37,9 @@
             position: fixed;
             left: 0;
             top: 0;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(12px);
-            border-right: 1px solid rgba(255,255,255,0.6);
+            border-right: 1px solid #334155;
             padding: 2rem 1.5rem;
             display: flex;
             flex-direction: column;
@@ -50,7 +52,7 @@
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
-            color: #64748b;
+            color: #94a3b8;
             text-decoration: none;
             border-radius: 12px;
             transition: all 0.2s;
@@ -59,7 +61,7 @@
             cursor: pointer;
         }
         
-        .nav-item:hover, .nav-item.active { background: #eff6ff; color: #2563eb; }
+        .nav-item:hover, .nav-item.active { background: #1e293b; color: #60a5fa; }
         .nav-item svg { width: 20px; height: 20px; }
 
         /* SOCIAL ICONS */
@@ -67,7 +69,7 @@
         .social-btn {
             width: 36px; height: 36px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.05); color: #64748b;
+            background: rgba(255,255,255,0.1); color: #94a3b8;
             transition: all 0.2s; text-decoration: none;
         }
         .social-btn:hover { background: #3b82f6; color: white; transform: translateY(-2px); }
@@ -86,14 +88,14 @@
         .glass-card:hover { transform: translateY(-2px); }
 
         /* UPLOAD AREA */
-        .upload-zone { border: 2px dashed #94a3b8; background: rgba(255,255,255,0.5); transition: all 0.3s; }
+        .upload-zone { border: 2px dashed #475569; background: rgba(30, 41, 59, 0.5); transition: all 0.3s; }
         .upload-zone:hover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
 
         /* KPI NUMBERS */
         .kpi-value {
             font-size: 2rem;
             font-weight: 800;
-            background: -webkit-linear-gradient(45deg, #1e293b, #475569);
+            background: -webkit-linear-gradient(45deg, #f8fafc, #cbd5e1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -109,7 +111,7 @@
 
         /* TABLA SORTABLE */
         th.sortable { cursor: pointer; user-select: none; transition: background 0.2s; }
-        th.sortable:hover { background: rgba(0,0,0,0.05); }
+        th.sortable:hover { background: rgba(255,255,255,0.05); }
         .cat-tag { background-color: var(--tag-bg); color: var(--tag-text); padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
 
         /* SCROLLBAR */
@@ -117,42 +119,22 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        /* MODO OSCURO (ACTIVADO POR DEFECTO) */
-        body.dark-mode {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #e2e8f0;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --tag-bg: #334155; 
-            --tag-text: #e2e8f0;
-        }
-        body.dark-mode .sidebar { background: rgba(15, 23, 42, 0.9); border-right-color: #334155; }
-        body.dark-mode .nav-item { color: #94a3b8; }
-        body.dark-mode .nav-item:hover, body.dark-mode .nav-item.active { background: #1e293b; color: #60a5fa; }
-        body.dark-mode .kpi-value { background: -webkit-linear-gradient(45deg, #f8fafc, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        body.dark-mode .upload-zone { border-color: #475569; background: rgba(30, 41, 59, 0.5); }
-        body.dark-mode .social-btn { background: rgba(255,255,255,0.1); color: #94a3b8; }
-        body.dark-mode .social-btn:hover { background: #3b82f6; color: white; }
+        /* TEXT COLORS OVERRIDES FOR DARK MODE */
+        .text-slate-600 { color: #cbd5e1 !important; }
+        .text-slate-700 { color: #e2e8f0 !important; }
+        .text-slate-800 { color: #ffffff !important; }
+        h1, h2, h3 { color: #ffffff !important; }
         
-        /* CORRECCIONES DE CONTRASTE OSCURO */
-        body.dark-mode .text-slate-600 { color: #cbd5e1 !important; }
-        body.dark-mode .text-slate-700 { color: #e2e8f0 !important; }
-        body.dark-mode .text-slate-800 { color: #ffffff !important; }
-        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 { color: #ffffff !important; }
-        
-        body.dark-mode thead { background-color: rgba(30, 41, 59, 0.9) !important; }
-        body.dark-mode th { color: #ffffff !important; }
-        body.dark-mode th.sortable:hover { background: rgba(255,255,255,0.1); }
+        thead { background-color: rgba(30, 41, 59, 0.9) !important; }
+        th { color: #ffffff !important; }
+        th.sortable:hover { background: rgba(255,255,255,0.1); }
 
-        body.dark-mode tbody tr { border-bottom-color: #334155 !important; }
-        body.dark-mode .bg-slate-50 { background-color: #1e293b !important; color: white !important; }
-        body.dark-mode .bg-white { background-color: transparent !important; }
+        tbody tr { border-bottom-color: #334155 !important; }
+        .bg-slate-50 { background-color: #1e293b !important; color: white !important; }
+        .bg-white { background-color: transparent !important; }
 
-        /* Fix para las opciones del desplegable en Modo Oscuro */
-        body.dark-mode select option { 
-            background-color: #1e293b; 
-            color: #e2e8f0; 
-        }
+        /* Fix para las opciones del desplegable */
+        select option { background-color: #1e293b; color: #e2e8f0; }
 
         /* MOBILE */
         .mobile-overlay { display: none; }
@@ -174,7 +156,7 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg leading-tight tracking-tight">Finance<span class="text-blue-600">Dash</span></h1>
-                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V18.4 DARK</p>
+                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V19.1 DARK</p>
             </div>
         </div>
 
@@ -183,7 +165,6 @@
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                 Dashboard
             </a>
-            <!-- BOTÓN MODO OSCURO ELIMINADO -->
             <div class="nav-item" id="btn-download-side">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 Guardar App
@@ -194,7 +175,7 @@
             </div>
         </nav>
 
-        <div class="mt-auto pt-6 border-t border-slate-200 dark:border-slate-700">
+        <div class="mt-auto pt-6 border-t border-slate-700">
             <div class="social-row">
                 <a href="https://t.me/myfinancedash" target="_blank" class="social-btn" title="Telegram">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 11.944 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
@@ -217,12 +198,12 @@
     <!-- CONTENIDO PRINCIPAL -->
     <main class="main-content flex-1 md:ml-[260px] p-4 md:p-8 transition-all duration-300">
         
-        <!-- HEADER MÓVIL -->
+        <!-- HEADER MÓVIL (CORREGIDO) -->
         <div class="md:hidden flex justify-between items-center mb-6">
-            <button id="btn-menu" class="p-2 rounded-lg bg-white/50 backdrop-blur border border-slate-200 text-slate-600">
+            <button id="btn-menu" class="p-2 rounded-lg bg-slate-800/50 backdrop-blur border border-slate-700 text-white hover:bg-slate-700/50 transition-colors">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
-            <span class="font-bold text-slate-700">My Finance Dash</span>
+            <span class="font-bold text-slate-200">My Finance Dash</span>
             <div class="w-8"></div>
         </div>
 
@@ -244,7 +225,7 @@
         <!-- DASHBOARD (Hidden initially) -->
         <div id="dashboard" class="hidden max-w-6xl mx-auto space-y-6">
             
-            <!-- CONTROLES SUPERIORES -->
+            <!-- CONTROLES SUPERIORES (UNIFICADO) -->
             <div class="glass-card flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-slate-800 dark:text-white">Resumen Financiero</h2>
@@ -252,7 +233,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <div id="alert-partial" class="hidden px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] font-bold uppercase rounded-full border border-yellow-200">⚠️ Mes Actual</div>
-                    <select id="month-selector" class="cursor-pointer bg-white/50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 font-semibold shadow-sm outline-none backdrop-blur-sm transition-colors">
+                    <select id="month-selector" class="cursor-pointer bg-slate-800/50 border border-slate-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 font-semibold shadow-sm outline-none backdrop-blur-sm transition-colors hover:bg-slate-700/50">
                         <option value="all">Todo el Histórico</option>
                     </select>
                 </div>
@@ -284,7 +265,7 @@
                 </div>
             </div>
 
-            <!-- PAGOS DESGLOSADOS -->
+            <!-- PAGOS DESGLOSADOS (UNIFICADO) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="glass-card flex items-center justify-between">
                     <div>
@@ -363,11 +344,15 @@
             <div class="glass-card overflow-hidden">
                 <div class="flex justify-between items-center mb-6 px-2">
                     <h3 class="font-bold text-slate-700 dark:text-slate-200">Últimos Movimientos</h3>
-                    <!-- BOTÓN DE BORRAR FILTRO (Oculto por defecto) -->
-                    <button id="btn-clear-filter" class="hidden text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-bold hover:bg-blue-200 transition-colors flex items-center gap-2">
-                        <span>🔍 Filtrado por: <span id="filter-name"></span></span>
-                        <span>✖</span>
-                    </button>
+                    <!-- BUSCADOR INTEGRADO -->
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="search-input" placeholder="Buscar..." class="bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all w-32 md:w-48">
+                        <!-- BOTÓN DE BORRAR FILTRO (Oculto por defecto) -->
+                        <button id="btn-clear-filter" class="hidden text-xs bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-200 transition-colors flex items-center gap-2">
+                            <span><span id="filter-name"></span></span>
+                            <span>✖</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="overflow-auto max-h-[500px]">
                     <table class="w-full text-sm text-left text-slate-600 dark:text-slate-300">
@@ -420,7 +405,8 @@
 
         let rawDataStore = null; 
         let sortConfig = { key: 'fecha', desc: true };
-        let activeCategoryFilter = null; // ESTADO DEL FILTRO
+        let activeCategoryFilter = null; 
+        let activeSearchTerm = ''; 
 
         const DataEngine = {
             detectColumns: (rows) => {
@@ -505,7 +491,7 @@
                 const blob = new Blob([html], { type: 'text/html' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'MyFinance_Dash_v18.html';
+                a.download = 'MyFinance_Dash_v19.1.html';
                 a.click();
             },
             sortData: (key) => {
@@ -516,7 +502,6 @@
                     sortConfig.desc = true;
                 }
                 const factor = sortConfig.desc ? -1 : 1;
-                // Usamos la función que respeta el filtro de categoría
                 const currentMovs = App.getMovsForTable(); 
                 currentMovs.sort((a, b) => {
                     if (key === 'fecha') return (a.dateObj - b.dateObj) * factor;
@@ -680,27 +665,42 @@
             // NUEVO: Obtiene movimientos aplicando filtro de mes Y categoría
             getMovsForTable: () => {
                 let movs = App.getCurrentFilteredMovs();
+                
+                // 1. Filtro Categoría
                 if (activeCategoryFilter) {
                     movs = movs.filter(m => m.cat === activeCategoryFilter);
                 }
+                
+                // 2. Filtro Buscador (NUEVO)
+                if (activeSearchTerm) {
+                    const term = activeSearchTerm.toLowerCase();
+                    movs = movs.filter(m => 
+                        m.desc.toLowerCase().includes(term) || 
+                        m.cat.toLowerCase().includes(term) ||
+                        m.importe.toString().includes(term)
+                    );
+                }
+                
                 return movs;
             },
-            // NUEVO: Aplica el filtro de categoría
+            // Aplica el filtro de categoría
             applyCategoryFilter: (category) => {
                 activeCategoryFilter = category;
                 document.getElementById('filter-name').innerText = category;
                 document.getElementById('btn-clear-filter').classList.remove('hidden');
                 UI.renderTable(App.getMovsForTable());
             },
-            // NUEVO: Limpia el filtro
+            // Limpia el filtro de categoría
             clearCategoryFilter: () => {
                 activeCategoryFilter = null;
                 document.getElementById('btn-clear-filter').classList.add('hidden');
                 UI.renderTable(App.getMovsForTable());
             },
             refreshDashboard: () => {
-                // Al cambiar de mes, reseteamos el filtro de categoría para evitar confusión
+                // Al cambiar de mes, reseteamos filtros
                 App.clearCategoryFilter();
+                activeSearchTerm = '';
+                document.getElementById('search-input').value = '';
                 
                 const movs = App.getCurrentFilteredMovs();
                 const processed = DataEngine.calculateStats(movs);
@@ -727,13 +727,6 @@
             },
             setupListeners: () => {
                 // Sidebar & Controls
-                // ELIMINADO: Botón de tema ya no existe en HTML, así que quitamos el listener
-                /*
-                document.getElementById('btn-theme-side').addEventListener('click', () => {
-                    UI.toggleDarkMode();
-                    if (rawDataStore) App.refreshDashboard();
-                });
-                */
                 document.getElementById('btn-download-side').addEventListener('click', UI.downloadApp);
                 document.getElementById('btn-menu').addEventListener('click', UI.toggleMobileMenu);
                 document.getElementById('mobile-overlay').addEventListener('click', UI.toggleMobileMenu);
@@ -748,6 +741,12 @@
 
                 // Clear Filter Button
                 document.getElementById('btn-clear-filter').addEventListener('click', App.clearCategoryFilter);
+
+                // NUEVO: Listener del Buscador
+                document.getElementById('search-input').addEventListener('input', (e) => {
+                    activeSearchTerm = e.target.value;
+                    UI.renderTable(App.getMovsForTable());
+                });
 
                 // File Upload
                 document.getElementById('file-input').addEventListener('change', async (e) => {
