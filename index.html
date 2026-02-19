@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Finance Dash | v19.3 (Restored)</title>
+    <title>My Finance Dash | v19.4 (Smart & Stable)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -159,7 +159,7 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg leading-tight tracking-tight">Finance<span class="text-blue-600">Dash</span></h1>
-                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V19.3 RESTORED</p>
+                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V19.4 SMART</p>
             </div>
         </div>
 
@@ -292,7 +292,7 @@
                     <span class="w-2 h-2 bg-red-500 rounded-full"></span> Intensidad de Gasto Diario
                 </h3>
                 <div id="heatmap" class="heatmap-container"></div>
-                <!-- LEYENDA (CORREGIDA A SLATE-800) -->
+                <!-- LEYENDA -->
                 <div class="mt-4 flex gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                     <div class="flex items-center gap-1"><div class="w-3 h-3 bg-slate-100 dark:bg-slate-800 rounded"></div> Sin Gasto</div>
                     <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-200 rounded"></div> Bajo</div>
@@ -349,7 +349,7 @@
                     <h3 class="font-bold text-slate-700 dark:text-slate-200">Últimos Movimientos</h3>
                     <!-- BUSCADOR INTEGRADO (CORREGIDO SLATE-900) -->
                     <div class="flex items-center gap-2">
-                        <input type="text" id="search-input" placeholder="Buscar..." class="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all w-32 md:w-48">
+                        <input type="text" id="search-input" placeholder="Buscar..." class="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all w-32 md:w-48">
                         <!-- BOTÓN DE BORRAR FILTRO (Oculto por defecto) -->
                         <button id="btn-clear-filter" class="hidden text-xs bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-200 transition-colors flex items-center gap-2">
                             <span><span id="filter-name"></span></span>
@@ -494,7 +494,7 @@
                 const blob = new Blob([html], { type: 'text/html' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'MyFinance_Dash_v19.3.html';
+                a.download = 'MyFinance_Dash_v18.html';
                 a.click();
             },
             sortData: (key) => {
@@ -505,6 +505,7 @@
                     sortConfig.desc = true;
                 }
                 const factor = sortConfig.desc ? -1 : 1;
+                // Usamos la función que respeta el filtro de categoría
                 const currentMovs = App.getMovsForTable(); 
                 currentMovs.sort((a, b) => {
                     if (key === 'fecha') return (a.dateObj - b.dateObj) * factor;
@@ -569,7 +570,9 @@
                 const html = movs.map(m => `
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                         <td class="px-6 py-4 text-xs font-mono opacity-80">${m.fecha}</td>
-                        <td class="px-6 py-4 font-medium truncate max-w-[200px] text-slate-700 dark:text-slate-200">${m.desc}</td>
+                        <td class="px-6 py-4 font-medium text-slate-700 dark:text-slate-200 cursor-pointer" onclick="this.querySelector('div').classList.toggle('truncate'); this.querySelector('div').classList.toggle('whitespace-normal');" title="Clic para expandir/contraer">
+                            <div class="truncate max-w-[300px] transition-all duration-200">${m.desc}</div>
+                        </td>
                         <td class="px-6 py-4 text-xs"><span class="cat-tag">${m.cat}</span></td>
                         <td class="px-6 py-4 text-right font-bold ${m.importe >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}">${UTILS.fmtMoney(m.importe)}</td>
                     </tr>
@@ -666,16 +669,11 @@
                 if (sel === 'all') return rawDataStore.movs;
                 return rawDataStore.movs.filter(m => m.monthKey === sel);
             },
-            // NUEVO: Obtiene movimientos aplicando filtro de mes Y categoría
             getMovsForTable: () => {
                 let movs = App.getCurrentFilteredMovs();
-                
-                // 1. Filtro Categoría
                 if (activeCategoryFilter) {
                     movs = movs.filter(m => m.cat === activeCategoryFilter);
                 }
-                
-                // 2. Filtro Buscador (NUEVO)
                 if (activeSearchTerm) {
                     const term = activeSearchTerm.toLowerCase();
                     movs = movs.filter(m => 
@@ -684,37 +682,42 @@
                         m.importe.toString().includes(term)
                     );
                 }
-                
                 return movs;
             },
-            // Aplica el filtro de categoría
+            updateFilterBadge: () => {
+                const filtered = App.getMovsForTable();
+                if (activeSearchTerm || activeCategoryFilter) {
+                    let total = 0;
+                    filtered.forEach(m => total += m.importe);
+                    let label = activeCategoryFilter ? activeCategoryFilter : `"${activeSearchTerm}"`;
+                    if (activeCategoryFilter && activeSearchTerm) label = `${activeCategoryFilter} + "${activeSearchTerm}"`;
+                    document.getElementById('filter-name').innerText = `${label} | ${filtered.length} movs | Total: ${UTILS.fmtMoney(total)}`;
+                    document.getElementById('btn-clear-filter').classList.remove('hidden');
+                } else {
+                    document.getElementById('btn-clear-filter').classList.add('hidden');
+                }
+            },
             applyCategoryFilter: (category) => {
                 activeCategoryFilter = category;
-                document.getElementById('filter-name').innerText = category;
-                document.getElementById('btn-clear-filter').classList.remove('hidden');
+                App.updateFilterBadge();
                 UI.renderTable(App.getMovsForTable());
             },
-            // Limpia el filtro de categoría
             clearCategoryFilter: () => {
                 activeCategoryFilter = null;
+                activeSearchTerm = '';
+                document.getElementById('search-input').value = '';
                 document.getElementById('btn-clear-filter').classList.add('hidden');
                 UI.renderTable(App.getMovsForTable());
             },
             refreshDashboard: () => {
-                // Al cambiar de mes, reseteamos filtros
                 App.clearCategoryFilter();
-                activeSearchTerm = '';
-                document.getElementById('search-input').value = '';
-                
                 const movs = App.getCurrentFilteredMovs();
                 const processed = DataEngine.calculateStats(movs);
                 const sel = document.getElementById('month-selector').value;
-                
                 let prevStats = null;
                 const currentYM = new Date().toISOString().slice(0, 7);
                 const alertEl = document.getElementById('alert-partial');
                 if (sel === currentYM) alertEl.classList.remove('hidden'); else alertEl.classList.add('hidden');
-
                 if (sel !== 'all') {
                     let [y, m] = sel.split('-').map(Number);
                     m--; if (m === 0) { m = 12; y--; }
@@ -722,7 +725,6 @@
                     const prevMovs = rawDataStore.movs.filter(k => k.monthKey === prevKey);
                     if (prevMovs.length > 0) prevStats = DataEngine.calculateStats(prevMovs).stats;
                 }
-
                 const tasaAhorro = UI.updateKPIs(processed.stats, prevStats);
                 UI.renderHeatmap(processed.dailyGas);
                 UI.renderTop5(processed.ranking);
@@ -730,29 +732,20 @@
                 UI.renderTable(movs);
             },
             setupListeners: () => {
-                // Sidebar & Controls
                 document.getElementById('btn-download-side').addEventListener('click', UI.downloadApp);
                 document.getElementById('btn-menu').addEventListener('click', UI.toggleMobileMenu);
                 document.getElementById('mobile-overlay').addEventListener('click', UI.toggleMobileMenu);
-                
                 document.getElementById('month-selector').addEventListener('change', App.refreshDashboard);
-                
-                // Sorting Tables
                 document.getElementById('th-fecha').addEventListener('click', () => UI.sortData('fecha'));
                 document.getElementById('th-importe').addEventListener('click', () => UI.sortData('importe'));
                 document.getElementById('th-concepto').addEventListener('click', () => UI.sortData('concepto'));
                 document.getElementById('th-categoria').addEventListener('click', () => UI.sortData('categoria'));
-
-                // Clear Filter Button
                 document.getElementById('btn-clear-filter').addEventListener('click', App.clearCategoryFilter);
-
-                // NUEVO: Listener del Buscador
                 document.getElementById('search-input').addEventListener('input', (e) => {
                     activeSearchTerm = e.target.value;
+                    App.updateFilterBadge();
                     UI.renderTable(App.getMovsForTable());
                 });
-
-                // File Upload
                 document.getElementById('file-input').addEventListener('change', async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -779,14 +772,12 @@
                     };
                     r.readAsArrayBuffer(file);
                 });
-                
-                // Screenshot
                 document.getElementById('btn-screenshot-side').addEventListener('click', async () => {
                     const sidebar = document.getElementById('sidebar');
-                    sidebar.style.display = 'none'; // Hide for photo
+                    sidebar.style.display = 'none';
                     const canvas = await html2canvas(document.body, { backgroundColor: document.body.classList.contains('dark-mode') ? '#0f172a' : '#f0f9ff' });
                     const link = document.createElement('a'); link.download = `MyFinance_Report.png`; link.href = canvas.toDataURL(); link.click();
-                    sidebar.style.display = ''; // Restore
+                    sidebar.style.display = '';
                 });
             }
         };
