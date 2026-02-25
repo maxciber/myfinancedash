@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Finance Dash | v19.6 (Financial Clarity)</title>
+    <title>My Finance Dash | v21.0 (Robustness & UX)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -159,7 +159,7 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg leading-tight tracking-tight">Finance<span class="text-blue-600">Dash</span></h1>
-                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V19.6 CLARITY</p>
+                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V21.0 ROBUST</p>
             </div>
         </div>
 
@@ -198,7 +198,6 @@
 
     <div class="mobile-overlay" id="mobile-overlay"></div>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <main class="main-content flex-1 md:ml-[260px] p-4 md:p-8 transition-all duration-300">
         
         <!-- HEADER MÓVIL (CORREGIDO) -->
@@ -210,7 +209,6 @@
             <div class="w-8"></div>
         </div>
 
-        <!-- ZONA DE CARGA (Initial State) -->
         <div id="upload-area" class="max-w-2xl mx-auto mt-20 text-center">
             <div class="glass-card upload-zone p-12">
                 <div class="w-24 h-24 bg-blue-100/50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -225,7 +223,6 @@
             </div>
         </div>
 
-        <!-- DASHBOARD (Hidden initially) -->
         <div id="dashboard" class="hidden max-w-6xl mx-auto space-y-6">
             
             <!-- CONTROLES SUPERIORES (UNIFICADO) -->
@@ -268,6 +265,9 @@
                 </div>
             </div>
 
+            <!-- SMART INSIGHTS PANEL -->
+            <div id="insights-panel" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
             <!-- PAGOS DESGLOSADOS (UNIFICADO) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="glass-card flex items-center justify-between">
@@ -292,9 +292,9 @@
                     <span class="w-2 h-2 bg-red-500 rounded-full"></span> Intensidad de Gasto Diario
                 </h3>
                 <div id="heatmap" class="heatmap-container"></div>
-                <!-- LEYENDA (SUAVIZADA) -->
+                <!-- LEYENDA -->
                 <div class="mt-4 flex gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-slate-100 dark:bg-slate-700/40 rounded"></div> Sin Gasto</div>
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-slate-100 dark:bg-slate-700/30 rounded"></div> Sin Gasto</div>
                     <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-200 rounded"></div> Bajo</div>
                     <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-400 rounded"></div> Medio</div>
                     <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-600 rounded"></div> Alto</div>
@@ -351,9 +351,9 @@
             <div class="glass-card overflow-hidden">
                 <div class="flex justify-between items-center mb-6 px-2">
                     <h3 class="font-bold text-slate-700 dark:text-slate-200">Últimos Movimientos</h3>
-                    <!-- BUSCADOR INTEGRADO (CORREGIDO SLATE-900) -->
+                    <!-- BUSCADOR INTEGRADO (CORREGIDO SLATE-950) -->
                     <div class="flex items-center gap-2">
-                        <input type="text" id="search-input" placeholder="Buscar..." class="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all w-32 md:w-48">
+                        <input type="text" id="search-input" placeholder="Buscar..." class="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all w-32 md:w-48">
                         <!-- BOTÓN DE BORRAR FILTRO (Oculto por defecto) -->
                         <button id="btn-clear-filter" class="hidden text-xs bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-200 transition-colors flex items-center gap-2">
                             <span><span id="filter-name"></span></span>
@@ -382,13 +382,13 @@
     <script>
         const CONFIG = {
             categories: {
-                '🛒 Supermercado': ['mercadona', 'lidl', 'carrefour', 'dia', 'consum', 'alcampo', 'super', 'hipercor', 'ahorramas', 'aldi'],
-                '⛽ Transporte': ['repsol', 'cepsa', 'galp', 'uber', 'cabify', 'renfe', 'gasolinera', 'shell', 'bp', 'taxi', 'emt', 'metro'],
-                '📺 Suscripciones': ['netflix', 'spotify', 'hbo', 'disney', 'prime', 'google storage', 'gym', 'apple.com', 'dazn', 'skyshowtime', 'playstation', 'xbox'],
-                '🍔 Restauración': ['restaurante', 'bar', 'cafe', 'mcdonalds', 'burger', 'glovo', 'just eat', 'vips', 'starbucks', 'foster', 'goiko', 'taco bell', 'domino', 'popeyes'],
+                '🛒 Supermercado': ['mercadona', 'lidl', 'carrefour', 'dia', 'consum', 'alcampo', 'super', 'hipercor', 'ahorramas', 'aldi', 'corte ingles'],
+                '⛽ Transporte': ['repsol', 'cepsa', 'galp', 'uber', 'cabify', 'renfe', 'gasolinera', 'shell', 'bp', 'taxi', 'emt', 'metro', 'alsa'],
+                '📺 Suscripciones': ['netflix', 'spotify', 'hbo', 'disney', 'prime', 'google storage', 'gym', 'apple', 'dazn', 'skyshowtime', 'playstation', 'xbox', 'steam'],
+                '🍔 Restauración': ['restaurante', 'bar', 'cafe', 'mcdonalds', 'burger', 'glovo', 'just eat', 'vips', 'starbucks', 'foster', 'goiko', 'taco bell', 'domino', 'popeyes', 'kfc'],
                 '🏠 Hogar/Facturas': ['iberdrola', 'endesa', 'naturgy', 'agua', 'luz', 'gas', 'internet', 'vodafone', 'movistar', 'orange', 'digi', 'ikea', 'leroy', 'aki', 'bauhaus', 'bricomart'],
-                '📦 Moda y Compras': ['amazon', 'aliexpress', 'zara', 'decathlon', 'primark', 'h&m', 'mango', 'shein', 'pull and bear', 'stradivarius', 'nike', 'adidas', 'fnac', 'casa del libro', 'primor', 'druni', 'sephora'],
-                '🏥 Salud y Ocio': ['farmacia', 'hospital', 'dentista', 'cine', 'entradas', 'ticketmaster', 'mutua', 'mapfre', 'allianz'],
+                '📦 Moda y Compras': ['amazon', 'aliexpress', 'zara', 'decathlon', 'primark', 'h&m', 'mango', 'shein', 'pull', 'stradivarius', 'nike', 'adidas', 'fnac', 'casa del libro', 'primor', 'druni', 'sephora'],
+                '🏥 Salud y Ocio': ['farmacia', 'hospital', 'dentista', 'cine', 'entradas', 'ticketmaster', 'mutua', 'mapfre', 'allianz', 'sanitas'],
                 '💳 Digital/Bancos': ['bizum', 'paypal', 'transferencia', 'revolut', 'hipoteca', 'prestamo', 'comision', 'seguro']
             },
             colors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#6366f1', '#a855f7', '#ec4899']
@@ -407,6 +407,9 @@
             parseImporte: (val) => {
                 let clean = String(val).replace(/[^\d,.-]/g, '').replace(',', '.');
                 return parseFloat(clean);
+            },
+            cleanString: (str) => {
+                return String(str).toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
             }
         };
 
@@ -436,7 +439,10 @@
             },
             processRows: (rows) => {
                 const { colMap, startIdx } = DataEngine.detectColumns(rows);
-                if (startIdx === -1) return null;
+                if (startIdx === -1) {
+                    alert("❌ No se han detectado las columnas 'Concepto' e 'Importe'. Por favor, revisa tu archivo.");
+                    return null;
+                }
                 
                 let allMovs = [];
                 let monthsSet = new Set();
@@ -450,13 +456,15 @@
                     let cat = '📂 Otros';
                     let dateObj = UTILS.parseDate(row[colMap.fecha]);
                     let fechaStr = dateObj.toLocaleDateString('es-ES');
-                    let monthKey = dateObj.toISOString().slice(0, 7); // YYYY-MM
+                    let monthKey = dateObj.toISOString().slice(0, 7); 
                     
                     monthsSet.add(monthKey);
 
-                    let lowerDesc = desc.toLowerCase();
+                    let cleanDesc = UTILS.cleanString(desc);
                     if (importe < 0) {
-                        for (const [k, v] of Object.entries(CONFIG.categories)) { if (v.some(kw => lowerDesc.includes(kw))) { cat = k; break; } }
+                        for (const [k, v] of Object.entries(CONFIG.categories)) { 
+                            if (v.some(kw => cleanDesc.includes(kw))) { cat = k; break; } 
+                        }
                     } else {
                         cat = '💰 Ingresos';
                     }
@@ -498,7 +506,7 @@
                 const blob = new Blob([html], { type: 'text/html' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'MyFinance_Dash_v19.6.html';
+                a.download = 'MyFinance_Dash_v21.html';
                 a.click();
             },
             sortData: (key) => {
@@ -559,6 +567,8 @@
 
                 const tasa = stats.ing > 0 ? Math.max(0, ((stats.ing - stats.gas) / stats.ing) * 100) : 0;
                 document.getElementById('gauge-percent').innerText = `${Math.round(tasa)}%`;
+                
+                App.generateInsights(stats, prevStats);
                 return tasa;
             },
             renderTop5: (ranking) => {
@@ -585,16 +595,23 @@
             renderHeatmap: (dailyGas) => {
                 const heatDiv = document.getElementById('heatmap'); heatDiv.innerHTML = '';
                 const sel = document.getElementById('month-selector').value;
+                
                 let loopDays = 90;
-                if(sel !== 'all') loopDays = 31; 
+                let startDate = new Date();
+                startDate.setDate(startDate.getDate() - 90);
 
-                for (let i = loopDays; i >= 0; i--) {
-                   let d = new Date(); 
-                   if(sel !== 'all') { d = new Date(sel + '-01'); d.setDate(d.getDate() + (31-i)); }
-                   else { d.setDate(d.getDate() - i); }
+                if(sel !== 'all') {
+                    const [y, m] = sel.split('-').map(Number);
+                    startDate = new Date(y, m - 1, 1);
+                    loopDays = new Date(y, m, 0).getDate(); 
+                }
+
+                for (let i = 0; i < loopDays; i++) {
+                   let d = new Date(startDate);
+                   d.setDate(d.getDate() + i);
                    let ds = d.toLocaleDateString('es-ES');
                    let val = dailyGas[ds] || 0;
-                   let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-400' : val > 0 ? 'bg-red-200' : 'bg-slate-100 dark:bg-slate-700/40';
+                   let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-400' : val > 0 ? 'bg-red-200' : 'bg-slate-100 dark:bg-slate-700/30';
                    let dayEl = document.createElement('div'); dayEl.className = `heat-day ${color}`; dayEl.title = `${ds}: ${UTILS.fmtMoney(val)}`;
                    heatDiv.appendChild(dayEl);
                 }
@@ -611,7 +628,7 @@
                     data: { datasets: [{ 
                         data: [tasaAhorro, 100 - tasaAhorro], 
                         backgroundColor: ['#3b82f6', isDark ? '#1e293b' : '#e2e8f0'], 
-                        hoverBackgroundColor: ['#93c5fd', isDark ? '#1e293b' : '#e2e8f0'],
+                        hoverBackgroundColor: ['#60a5fa', isDark ? '#1e293b' : '#e2e8f0'],
                         hoverBorderColor: '#ffffff',
                         hoverBorderWidth: 2,
                         borderWidth: 0, 
@@ -624,7 +641,7 @@
                 
                 UI.charts['chart-pie'] = new Chart(document.getElementById('chart-pie'), {
                     type: 'doughnut',
-                    data: { labels: Object.keys(catTotals), datasets: [{ data: Object.values(catTotals), backgroundColor: CONFIG.colors, borderWidth: 0, hoverOffset: 40 }] },
+                    data: { labels: Object.keys(catTotals), datasets: [{ data: Object.values(catTotals), backgroundColor: CONFIG.colors, borderWidth: 0, hoverOffset: 60 }] },
                     options: { 
                         maintainAspectRatio: false, 
                         plugins: { legend: { position: 'right', labels: { color: txtColor, boxWidth: 12, padding: 15, font: {size: 11} } } }, 
@@ -656,7 +673,6 @@
                     }
                 });
 
-                // GRÁFICA DE BARRAS HISTÓRICA (INGRESOS VS GASTOS)
                 const historyData = App.getHistoricalData();
                 UI.charts['chart-history-bar'] = new Chart(document.getElementById('chart-history-bar'), {
                     type: 'bar',
@@ -731,6 +747,28 @@
                     return date.toLocaleString('es-ES', { month: 'short' });
                 });
                 return { labels, incomes, expenses };
+            },
+            generateInsights: (stats, prevStats) => {
+                const panel = document.getElementById('insights-panel');
+                panel.innerHTML = '';
+                let trendHtml = '';
+                if(prevStats) {
+                    const diff = ((stats.gas - prevStats.gas) / prevStats.gas) * 100;
+                    const color = diff > 0 ? 'text-red-400' : 'text-green-400';
+                    const icon = diff > 0 ? '⚠️' : '✅';
+                    const text = diff > 0 ? 'Has gastado más que el mes pasado.' : '¡Bien! Has reducido tus gastos.';
+                    trendHtml = `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">${icon}</span><div><p class="text-xs font-bold uppercase text-slate-400">Tendencia</p><p class="text-sm font-semibold ${color}">${Math.abs(diff).toFixed(1)}% ${diff > 0 ? 'de aumento' : 'de ahorro'}.</p><p class="text-[10px] text-slate-500">${text}</p></div></div>`;
+                }
+                const sortedCats = Object.entries(DataEngine.calculateStats(App.getCurrentFilteredMovs()).catTotals).sort((a,b) => b[1] - a[1]);
+                let catHtml = '';
+                if(sortedCats.length > 0) {
+                    catHtml = `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">📊</span><div><p class="text-xs font-bold uppercase text-slate-400">Fuga de Dinero</p><p class="text-sm font-semibold text-white">${sortedCats[0][0]}</p><p class="text-[10px] text-slate-500">Es tu mayor gasto este mes (${UTILS.fmtMoney(sortedCats[0][1])}).</p></div></div>`;
+                }
+                const tasa = stats.ing > 0 ? ((stats.ing - stats.gas) / stats.ing) * 100 : 0;
+                const health = tasa > 20 ? 'Excelente' : tasa > 10 ? 'Buena' : 'Mejorable';
+                const healthColor = tasa > 20 ? 'text-blue-400' : tasa > 10 ? 'text-green-400' : 'text-yellow-400';
+                const healthHtml = `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">🎯</span><div><p class="text-xs font-bold uppercase text-slate-400">Salud Financiera</p><p class="text-sm font-semibold ${healthColor}">${health}</p><p class="text-[10px] text-slate-500">Tu tasa de ahorro es del ${Math.round(tasa)}%.</p></div></div>`;
+                panel.innerHTML = trendHtml + catHtml + healthHtml;
             },
             updateFilterBadge: () => {
                 const filtered = App.getMovsForTable();
