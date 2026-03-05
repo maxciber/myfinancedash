@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Finance Dash | v21.1 (Optimization)</title>
+    <title>My Finance Dash | v21.2 (Auto Currency & Date)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -33,7 +33,6 @@
             overflow-x: hidden;
         }
 
-        /* SIDEBAR */
         .sidebar {
             width: 260px;
             height: 100vh;
@@ -67,7 +66,6 @@
         .nav-item:hover, .nav-item.active { background: #1e293b; color: #60a5fa; }
         .nav-item svg { width: 20px; height: 20px; }
 
-        /* SOCIAL ICONS */
         .social-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
         .social-btn {
             width: 36px; height: 36px; border-radius: 10px;
@@ -77,7 +75,6 @@
         }
         .social-btn:hover { background: #3b82f6; color: white; transform: translateY(-2px); }
 
-        /* GLASS CARDS */
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(8px);
@@ -90,11 +87,9 @@
         }
         .glass-card:hover { transform: translateY(-2px); }
 
-        /* UPLOAD AREA */
         .upload-zone { border: 2px dashed #475569; background: rgba(30, 41, 59, 0.5); transition: all 0.3s; }
         .upload-zone:hover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
 
-        /* KPI NUMBERS */
         .kpi-value {
             font-size: 2rem;
             font-weight: 800;
@@ -103,26 +98,18 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* HEATMAP & LEGEND */
         .heatmap-container { display: flex; flex-wrap: wrap; gap: 4px; }
         .heat-day { width: 12px; height: 12px; border-radius: 3px; cursor: pointer; transition: transform 0.1s; border: 1px solid rgba(0,0,0,0.03); }
         .heat-day:hover { transform: scale(1.5); z-index: 10; border-color: #333; }
-        
-        .heatmap-legend { display: flex; gap: 12px; margin-top: 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
-        .legend-item { display: flex; align-items: center; gap: 6px; }
-        .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
 
-        /* TABLA SORTABLE */
         th.sortable { cursor: pointer; user-select: none; transition: background 0.2s; }
         th.sortable:hover { background: rgba(255,255,255,0.05); }
         .cat-tag { background-color: var(--tag-bg); color: var(--tag-text); padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
 
-        /* SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        /* TEXT COLORS OVERRIDES FOR DARK MODE */
         .text-slate-600 { color: #cbd5e1 !important; }
         .text-slate-700 { color: #e2e8f0 !important; }
         .text-slate-800 { color: #ffffff !important; }
@@ -131,15 +118,26 @@
         thead { background-color: rgba(30, 41, 59, 0.9) !important; }
         th { color: #ffffff !important; }
         th.sortable:hover { background: rgba(255,255,255,0.1); }
-
         tbody tr { border-bottom-color: #334155 !important; }
         .bg-slate-50 { background-color: #1e293b !important; color: white !important; }
         .bg-white { background-color: transparent !important; }
-
-        /* Fix para las opciones del desplegable */
         select option { background-color: #1e293b; color: #e2e8f0; }
 
-        /* MOBILE */
+        /* Badge moneda detectada */
+        .currency-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            background: rgba(59,130,246,0.15);
+            border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #60a5fa;
+            letter-spacing: 0.05em;
+        }
+
         .mobile-overlay { display: none; }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
@@ -151,7 +149,6 @@
 </head>
 <body class="dark-mode dark">
 
-    <!-- MENÚ LATERAL -->
     <aside class="sidebar" id="sidebar">
         <div class="mb-8 flex items-center gap-3 px-2">
             <div class="relative w-10 h-10 flex items-center justify-center bg-blue-600 rounded-xl text-white font-bold text-xl shadow-lg shadow-blue-500/30">
@@ -159,7 +156,7 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg leading-tight tracking-tight">Finance<span class="text-blue-600">Dash</span></h1>
-                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V21.1 OPTIMIZED</p>
+                <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V21.2 GLOBAL</p>
             </div>
         </div>
 
@@ -205,9 +202,10 @@
                     <span class="text-5xl">📂</span>
                 </div>
                 <h2 class="text-3xl font-bold mb-3 text-slate-800 tracking-tight">Importa tus datos</h2>
-                <p class="text-slate-500 mb-8 max-w-md mx-auto">Arrastra tu Excel aquí. Tus datos nunca salen de este navegador.</p>
+                <p class="text-slate-500 mb-2 max-w-md mx-auto">Arrastra tu Excel aquí. Tus datos nunca salen de este navegador.</p>
+                <p class="text-slate-600 mb-8 text-xs max-w-md mx-auto">🌍 Detección automática de moneda y formato de fecha</p>
                 <label class="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-blue-600 border border-transparent rounded-full shadow-lg hover:bg-blue-700 hover:shadow-blue-500/30 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Seleccionar Excel
+                    Seleccionar Excel / CSV
                     <input type="file" id="file-input" class="hidden" accept=".xls, .xlsx, .csv">
                 </label>
             </div>
@@ -220,7 +218,12 @@
                     <h2 class="text-xl font-bold text-slate-800 dark:text-white">Resumen Financiero</h2>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Vista general de tus movimientos</p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <!-- BADGE MONEDA DETECTADA -->
+                    <div id="currency-badge" class="currency-badge hidden">
+                        <span>🌍</span>
+                        <span id="currency-badge-text"></span>
+                    </div>
                     <div id="alert-partial" class="hidden px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] font-bold uppercase rounded-full border border-yellow-200">⚠️ Mes Actual</div>
                     <select id="month-selector" class="cursor-pointer bg-slate-800/50 border border-slate-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 font-semibold shadow-sm outline-none backdrop-blur-sm transition-colors hover:bg-slate-700/50">
                         <option value="all">Todo el Histórico</option>
@@ -232,19 +235,19 @@
                 <div class="glass-card relative overflow-hidden group">
                     <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-6xl">💸</div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Gastos Totales</p>
-                    <div class="flex items-baseline gap-2"><p class="kpi-value text-slate-800" id="kpi-gastos">0 €</p></div>
+                    <div class="flex items-baseline gap-2"><p class="kpi-value text-slate-800" id="kpi-gastos">0</p></div>
                     <div id="trend-gastos" class="mt-2 text-xs font-bold"></div>
                 </div>
                 <div class="glass-card relative overflow-hidden group">
                     <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-6xl">💰</div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ingresos</p>
-                    <div class="flex items-baseline gap-2"><p class="kpi-value text-slate-800" id="kpi-ingresos">0 €</p></div>
+                    <div class="flex items-baseline gap-2"><p class="kpi-value text-slate-800" id="kpi-ingresos">0</p></div>
                     <div id="trend-ingresos" class="mt-2 text-xs font-bold"></div>
                 </div>
                 <div class="glass-card relative overflow-hidden">
                     <div class="absolute right-0 top-0 p-4 opacity-10 text-6xl">⚖️</div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Balance Neto</p>
-                    <p class="kpi-value text-blue-600" id="kpi-balance">0 €</p>
+                    <p class="kpi-value text-blue-600" id="kpi-balance">0</p>
                 </div>
                 <div class="glass-card relative overflow-hidden">
                     <div class="absolute right-0 top-0 p-4 opacity-10 text-6xl">📅</div>
@@ -258,17 +261,17 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="glass-card flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">Tarjetas / Google Pay</p>
+                        <p class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">Tarjetas / Pay</p>
                         <p class="text-[10px] text-slate-500 dark:text-slate-400">Compras físicas y online</p>
                     </div>
-                    <p class="text-2xl font-bold text-indigo-700 dark:text-indigo-300" id="kpi-tarjeta">0 €</p>
+                    <p class="text-2xl font-bold text-indigo-700 dark:text-indigo-300" id="kpi-tarjeta">0</p>
                 </div>
                 <div class="glass-card flex items-center justify-between">
                     <div>
                         <p class="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase">Transferencias</p>
                         <p class="text-[10px] text-slate-500 dark:text-slate-400">Enviadas desde cuenta</p>
                     </div>
-                    <p class="text-2xl font-bold text-orange-700 dark:text-orange-300" id="kpi-transfer">0 €</p>
+                    <p class="text-2xl font-bold text-orange-700 dark:text-orange-300" id="kpi-transfer">0</p>
                 </div>
             </div>
 
@@ -357,34 +360,156 @@
     </main>
 
     <script>
+        // ─────────────────────────────────────────────
+        // CONFIG: Categorías con keywords ES + EN
+        // ─────────────────────────────────────────────
         const CONFIG = {
             categories: {
-                '🛒 Supermercado': ['mercadona', 'lidl', 'carrefour', 'dia', 'consum', 'alcampo', 'super', 'hipercor', 'ahorramas', 'aldi', 'corte ingles'],
-                '⛽ Transporte': ['repsol', 'cepsa', 'galp', 'uber', 'cabify', 'renfe', 'gasolinera', 'shell', 'bp', 'taxi', 'emt', 'metro', 'alsa'],
-                '📺 Suscripciones': ['netflix', 'spotify', 'hbo', 'disney', 'prime', 'google storage', 'gym', 'apple', 'dazn', 'skyshowtime', 'playstation', 'xbox', 'steam'],
-                '🍔 Restauración': ['restaurante', 'bar', 'cafe', 'mcdonalds', 'burger', 'glovo', 'just eat', 'vips', 'starbucks', 'foster', 'goiko', 'taco bell', 'domino', 'popeyes', 'kfc'],
-                '🏠 Hogar/Facturas': ['iberdrola', 'endesa', 'naturgy', 'agua', 'luz', 'gas', 'internet', 'vodafone', 'movistar', 'orange', 'digi', 'ikea', 'leroy', 'aki', 'bauhaus', 'bricomart'],
-                '📦 Moda y Compras': ['amazon', 'aliexpress', 'zara', 'decathlon', 'primark', 'h&m', 'mango', 'shein', 'pull', 'stradivarius', 'nike', 'adidas', 'fnac', 'casa del libro', 'primor', 'druni', 'sephora'],
-                '🏥 Salud y Ocio': ['farmacia', 'hospital', 'dentista', 'cine', 'entradas', 'ticketmaster', 'mutua', 'mapfre', 'allianz', 'sanitas'],
-                '💳 Digital/Bancos': ['bizum', 'paypal', 'transferencia', 'revolut', 'hipoteca', 'prestamo', 'comision', 'seguro']
+                '🛒 Supermercado': [
+                    // ES
+                    'mercadona', 'lidl', 'carrefour', 'dia', 'consum', 'alcampo', 'hipercor', 'ahorramas', 'aldi', 'corte ingles',
+                    // EN
+                    'walmart', 'kroger', 'whole foods', 'safeway', 'costco', 'trader joe', 'publix', 'target grocery', 'aldi us', 'stop shop'
+                ],
+                '⛽ Transporte': [
+                    // ES
+                    'repsol', 'cepsa', 'galp', 'uber', 'cabify', 'renfe', 'gasolinera', 'shell', 'bp', 'taxi', 'emt', 'metro', 'alsa',
+                    // EN
+                    'exxon', 'chevron', 'mobil', 'lyft', 'amtrak', 'mta', 'sunoco', 'speedway', 'delta air', 'united air', 'american air'
+                ],
+                '📺 Suscripciones': [
+                    // ES + EN (estas son globales en su mayoría)
+                    'netflix', 'spotify', 'hbo', 'disney', 'prime video', 'google storage', 'gym', 'apple', 'dazn', 'skyshowtime',
+                    'playstation', 'xbox', 'steam', 'hulu', 'paramount', 'peacock', 'youtube premium', 'crunchyroll', 'twitch'
+                ],
+                '🍔 Restauración': [
+                    // ES
+                    'restaurante', 'bar', 'cafe', 'mcdonalds', 'burger', 'glovo', 'just eat', 'vips', 'starbucks', 'foster', 'goiko',
+                    'taco bell', 'domino', 'popeyes', 'kfc',
+                    // EN
+                    'doordash', 'grubhub', 'chipotle', 'subway', 'chick-fil-a', 'wendy', 'panera', 'panda express', 'five guys', 'shake shack'
+                ],
+                '🏠 Hogar/Facturas': [
+                    // ES
+                    'iberdrola', 'endesa', 'naturgy', 'agua', 'internet', 'vodafone', 'movistar', 'orange', 'digi', 'ikea', 'leroy', 'aki', 'bauhaus', 'bricomart',
+                    // EN
+                    'at&t', 'verizon', 'comcast', 'xfinity', 't-mobile', 'duke energy', 'pg&e', 'con edison', 'home depot', 'lowe', 'wayfair'
+                ],
+                '📦 Moda y Compras': [
+                    // ES
+                    'amazon', 'aliexpress', 'zara', 'decathlon', 'primark', 'h&m', 'mango', 'shein', 'pull', 'stradivarius',
+                    'nike', 'adidas', 'fnac', 'primor', 'druni', 'sephora',
+                    // EN
+                    'ebay', 'etsy', 'macy', 'nordstrom', 'gap', 'old navy', 'tj maxx', 'marshall', 'ross store', 'best buy', 'apple store'
+                ],
+                '🏥 Salud y Ocio': [
+                    // ES
+                    'farmacia', 'hospital', 'dentista', 'cine', 'entradas', 'ticketmaster', 'mutua', 'mapfre', 'allianz', 'sanitas',
+                    // EN
+                    'cvs', 'walgreens', 'rite aid', 'aetna', 'cigna', 'united health', 'blue cross', 'fandango', 'amc theater', 'planet fitness'
+                ],
+                '💳 Digital/Bancos': [
+                    // ES
+                    'bizum', 'paypal', 'transferencia', 'revolut', 'hipoteca', 'prestamo', 'comision', 'seguro',
+                    // EN
+                    'venmo', 'zelle', 'cashapp', 'wire transfer', 'mortgage', 'loan payment', 'bank fee', 'insurance', 'stripe', 'square'
+                ]
             },
             colors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#6366f1', '#a855f7', '#ec4899']
         };
 
+        // ─────────────────────────────────────────────
+        // UTILS: con detección de moneda y fecha
+        // ─────────────────────────────────────────────
         const UTILS = {
-            fmtMoney: (n) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' }),
+            // Moneda y formato detectados (se sobreescriben al cargar el archivo)
+            currency: { code: 'EUR', locale: 'es-ES', symbol: '€' },
+            dateFormat: 'DMY',
+
+            fmtMoney: (n) => {
+                return n.toLocaleString(UTILS.currency.locale, {
+                    style: 'currency',
+                    currency: UTILS.currency.code
+                });
+            },
+
+            // ── DETECCIÓN DE MONEDA ──────────────────
+            detectCurrency: (rows) => {
+                // Unir las primeras 8 filas en un string para análisis
+                const sample = rows.slice(0, 8).map(r => r.join(' ')).join(' ');
+
+                // Orden de prioridad: símbolo > código ISO > nombre
+                if (/\$|USD|dollar/i.test(sample))   return { code: 'USD', locale: 'en-US',  symbol: '$'  };
+                if (/£|GBP|pound|sterling/i.test(sample)) return { code: 'GBP', locale: 'en-GB', symbol: '£'  };
+                if (/¥|JPY|yen/i.test(sample))        return { code: 'JPY', locale: 'ja-JP',  symbol: '¥'  };
+                if (/CHF|franc/i.test(sample))         return { code: 'CHF', locale: 'de-CH',  symbol: 'CHF'};
+                if (/R\$|BRL|real/i.test(sample))      return { code: 'BRL', locale: 'pt-BR',  symbol: 'R$' };
+                if (/MXN|peso/i.test(sample))          return { code: 'MXN', locale: 'es-MX',  symbol: '$'  };
+                if (/€|EUR|euro/i.test(sample))        return { code: 'EUR', locale: 'es-ES',  symbol: '€'  };
+
+                // Fallback: intentar detectar por símbolo en celdas de importe
+                for (const row of rows.slice(1, 20)) {
+                    for (const cell of row) {
+                        const s = String(cell);
+                        if (s.includes('$') && !s.includes('R$')) return { code: 'USD', locale: 'en-US', symbol: '$' };
+                        if (s.includes('£')) return { code: 'GBP', locale: 'en-GB', symbol: '£' };
+                        if (s.includes('€')) return { code: 'EUR', locale: 'es-ES', symbol: '€' };
+                    }
+                }
+
+                return { code: 'EUR', locale: 'es-ES', symbol: '€' }; // fallback final
+            },
+
+            // ── DETECCIÓN DE FORMATO DE FECHA ────────
+            detectDateFormat: (rows) => {
+                for (const row of rows.slice(1, 15)) {
+                    for (const cell of row) {
+                        if (typeof cell !== 'string') continue;
+                        const parts = cell.trim().split('/');
+                        if (parts.length === 3) {
+                            const a = parseInt(parts[0]);
+                            const b = parseInt(parts[1]);
+                            // Si el primer segmento > 12 → solo puede ser día → formato DMY
+                            if (a > 12) return 'DMY';
+                            // Si el segundo segmento > 12 → solo puede ser día → formato MDY
+                            if (b > 12) return 'MDY';
+                        }
+                        // También detectar formato YYYY-MM-DD (ISO)
+                        if (/^\d{4}-\d{2}-\d{2}$/.test(cell.trim())) return 'ISO';
+                    }
+                }
+                return 'DMY'; // fallback europeo
+            },
+
             parseDate: (val) => {
-                if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000));
+                // Fecha numérica de Excel
+                if (typeof val === 'number')
+                    return new Date(Math.round((val - 25569) * 86400 * 1000));
+
                 if (typeof val === 'string') {
-                    const parts = val.split('/');
-                    if(parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
+                    const s = val.trim();
+
+                    // Formato ISO: YYYY-MM-DD
+                    if (/^\d{4}-\d{2}-\d{2}/.test(s))
+                        return new Date(s);
+
+                    // Formato con barras
+                    const parts = s.split('/');
+                    if (parts.length === 3) {
+                        if (UTILS.dateFormat === 'MDY')
+                            return new Date(parts[2], parts[0] - 1, parts[1]); // MM/DD/YYYY
+                        else
+                            return new Date(parts[2], parts[1] - 1, parts[0]); // DD/MM/YYYY
+                    }
                 }
                 return new Date(val);
             },
-            // MEJORA v21.1: Parser robusto para formatos europeos (1.234,56)
+
+            // ── PARSER DE IMPORTE ROBUSTO ─────────────
             parseImporte: (val) => {
                 if (typeof val === 'number') return val;
                 let s = String(val).trim().replace(/[^\d,.-]/g, '');
+                // Formato europeo: 1.234,56
                 if (s.includes('.') && s.includes(',')) {
                     s = s.replace(/\./g, '').replace(',', '.');
                 } else if (s.includes(',')) {
@@ -392,81 +517,114 @@
                 }
                 return parseFloat(s);
             },
+
             cleanString: (str) => {
                 return String(str).toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
             }
         };
 
-        let rawDataStore = null; 
+        // ─────────────────────────────────────────────
+        // Estado global
+        // ─────────────────────────────────────────────
+        let rawDataStore = null;
         let sortConfig = { key: 'fecha', desc: true };
-        let activeCategoryFilter = null; 
-        let activeSearchTerm = ''; 
+        let activeCategoryFilter = null;
+        let activeSearchTerm = '';
 
+        // ─────────────────────────────────────────────
+        // DATA ENGINE
+        // ─────────────────────────────────────────────
         const DataEngine = {
             detectColumns: (rows) => {
                 let colMap = { fecha: -1, concepto: -1, importe: -1 };
                 let startIdx = -1;
                 for (let i = 0; i < rows.length; i++) {
                     const rowStr = rows[i].join(' ').toLowerCase();
-                    if ((rowStr.includes('concepto') || rowStr.includes('descripción')) && rowStr.includes('importe')) {
+                    if ((rowStr.includes('concepto') || rowStr.includes('descripci') || rowStr.includes('description') || rowStr.includes('details')) &&
+                        (rowStr.includes('importe') || rowStr.includes('amount') || rowStr.includes('debit') || rowStr.includes('credit'))) {
                         rows[i].forEach((cell, idx) => {
                             const txt = String(cell).toLowerCase().trim();
-                            if (txt.includes('fecha')) colMap.fecha = idx;
+                            if (txt.includes('fecha') || txt.includes('date')) colMap.fecha = idx;
                             if (txt.includes('operativa') && colMap.fecha === -1) colMap.fecha = idx;
-                            if (txt.includes('concepto') || txt.includes('descripción')) colMap.concepto = idx;
-                            if (txt.includes('importe')) colMap.importe = idx;
+                            if (txt.includes('concepto') || txt.includes('descripci') || txt.includes('description') || txt.includes('details')) colMap.concepto = idx;
+                            if (txt.includes('importe') || txt.includes('amount') || txt.includes('debit') || txt.includes('credit')) colMap.importe = idx;
                         });
-                        startIdx = i + 1; break;
+                        startIdx = i + 1;
+                        break;
                     }
                 }
                 return { colMap, startIdx };
             },
+
             processRows: (rows) => {
                 const { colMap, startIdx } = DataEngine.detectColumns(rows);
                 if (startIdx === -1) {
-                    alert("❌ No se han detectado las columnas 'Concepto' e 'Importe'. Por favor, revisa tu archivo.");
+                    alert("❌ No se detectaron columnas válidas (Concepto/Importe o Description/Amount).\nRevisa que el archivo sea un extracto bancario.");
                     return null;
                 }
-                
+
+                // ── DETECCIÓN AUTOMÁTICA ─────────────
+                UTILS.currency = UTILS.detectCurrency(rows);
+                UTILS.dateFormat = UTILS.detectDateFormat(rows);
+
+                // Mostrar badge
+                const badge = document.getElementById('currency-badge');
+                const badgeText = document.getElementById('currency-badge-text');
+                badge.classList.remove('hidden');
+                badgeText.innerText = `${UTILS.currency.symbol} ${UTILS.currency.code} · Fechas: ${UTILS.dateFormat}`;
+
                 let allMovs = [];
                 let monthsSet = new Set();
 
                 for (let i = startIdx; i < rows.length; i++) {
                     const row = rows[i];
-                    if (!row[colMap.concepto] || !row[colMap.importe]) continue;
+                    if (!row[colMap.concepto] || row[colMap.importe] === undefined || row[colMap.importe] === '') continue;
                     let desc = String(row[colMap.concepto]);
                     let importe = UTILS.parseImporte(row[colMap.importe]);
                     if (isNaN(importe)) continue;
+
                     let cat = '📂 Otros';
                     let dateObj = UTILS.parseDate(row[colMap.fecha]);
+                    // Validar fecha
+                    if (isNaN(dateObj.getTime())) dateObj = new Date();
                     let fechaStr = dateObj.toLocaleDateString('es-ES');
-                    let monthKey = dateObj.toISOString().slice(0, 7); 
-                    
+                    let monthKey = dateObj.toISOString().slice(0, 7);
+
                     monthsSet.add(monthKey);
 
                     let cleanDesc = UTILS.cleanString(desc);
                     if (importe < 0) {
-                        for (const [k, v] of Object.entries(CONFIG.categories)) { 
-                            if (v.some(kw => cleanDesc.includes(kw))) { cat = k; break; } 
+                        for (const [k, v] of Object.entries(CONFIG.categories)) {
+                            if (v.some(kw => cleanDesc.includes(kw))) { cat = k; break; }
                         }
                     } else {
                         cat = '💰 Ingresos';
                     }
                     allMovs.push({ dateObj, fecha: fechaStr, desc, cat, importe, monthKey });
                 }
+
+                if (allMovs.length === 0) {
+                    alert("⚠️ Se detectaron columnas pero no se pudo procesar ningún movimiento. Revisa el formato del archivo.");
+                    return null;
+                }
+
                 return { movs: allMovs, months: Array.from(monthsSet).sort().reverse() };
             },
+
             calculateStats: (movs) => {
                 let stats = { ing: 0, gas: 0, subs: 0, card: 0, trans: 0 };
                 let catTotals = {};
                 let ranking = {};
                 let dailyGas = {};
-                
+
                 movs.forEach(m => {
                     if (m.importe < 0) {
                         stats.gas += Math.abs(m.importe);
                         if (m.cat.includes('Suscripciones')) stats.subs++;
-                        if (['tarjeta', 'pay', 'bizum', 'compra'].some(k => m.desc.toLowerCase().includes(k))) stats.card += Math.abs(m.importe); else stats.trans += Math.abs(m.importe);
+                        if (['tarjeta', 'pay', 'bizum', 'compra', 'card', 'debit', 'credit'].some(k => m.desc.toLowerCase().includes(k)))
+                            stats.card += Math.abs(m.importe);
+                        else
+                            stats.trans += Math.abs(m.importe);
                         catTotals[m.cat] = (catTotals[m.cat] || 0) + Math.abs(m.importe);
                         dailyGas[m.fecha] = (dailyGas[m.fecha] || 0) + Math.abs(m.importe);
                     } else {
@@ -478,55 +636,55 @@
             }
         };
 
+        // ─────────────────────────────────────────────
+        // UI
+        // ─────────────────────────────────────────────
         const UI = {
             charts: {},
-            toggleDarkMode: () => { document.body.classList.toggle('dark-mode'); },
+
             toggleMobileMenu: () => {
                 document.getElementById('sidebar').classList.toggle('open');
                 document.getElementById('mobile-overlay').classList.toggle('open');
             },
+
             downloadApp: () => {
                 const html = document.documentElement.outerHTML;
                 const blob = new Blob([html], { type: 'text/html' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'MyFinance_Dash_v21.html';
+                a.download = 'MyFinance_Dash_v21.2.html';
                 a.click();
             },
+
             sortData: (key) => {
-                if (sortConfig.key === key) {
-                    sortConfig.desc = !sortConfig.desc;
-                } else {
-                    sortConfig.key = key;
-                    sortConfig.desc = true;
-                }
+                if (sortConfig.key === key) sortConfig.desc = !sortConfig.desc;
+                else { sortConfig.key = key; sortConfig.desc = true; }
                 const factor = sortConfig.desc ? -1 : 1;
-                const currentMovs = App.getMovsForTable(); 
+                const currentMovs = App.getMovsForTable();
                 currentMovs.sort((a, b) => {
-                    if (key === 'fecha') return (a.dateObj - b.dateObj) * factor;
-                    if (key === 'importe') return (a.importe - b.importe) * factor;
+                    if (key === 'fecha')    return (a.dateObj - b.dateObj) * factor;
+                    if (key === 'importe')  return (a.importe - b.importe) * factor;
                     if (key === 'concepto') return a.desc.localeCompare(b.desc) * factor;
                     if (key === 'categoria') return a.cat.localeCompare(b.cat) * factor;
                     return 0;
                 });
-                
                 document.querySelectorAll('.sort-icon').forEach(el => el.innerText = '');
-                const mapId = { 'fecha': 'th-fecha', 'importe': 'th-importe', 'concepto': 'th-concepto', 'categoria': 'th-categoria' };
-                const target = mapId[key];
-                if(target) document.querySelector(`#${target} .sort-icon`).innerText = sortConfig.desc ? ' ▼' : ' ▲';
-
+                const mapId = { fecha: 'th-fecha', importe: 'th-importe', concepto: 'th-concepto', categoria: 'th-categoria' };
+                if (mapId[key]) document.querySelector(`#${mapId[key]} .sort-icon`).innerText = sortConfig.desc ? ' ▼' : ' ▲';
                 UI.renderTable(currentMovs);
             },
-            showDashboard: () => { 
-                document.getElementById('upload-area').classList.add('hidden'); 
-                document.getElementById('dashboard').classList.remove('hidden'); 
+
+            showDashboard: () => {
+                document.getElementById('upload-area').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
             },
+
             updateKPIs: (stats, prevStats = null, catTotals) => {
-                document.getElementById('kpi-gastos').innerText = UTILS.fmtMoney(stats.gas);
+                document.getElementById('kpi-gastos').innerText   = UTILS.fmtMoney(stats.gas);
                 document.getElementById('kpi-ingresos').innerText = UTILS.fmtMoney(stats.ing);
-                document.getElementById('kpi-balance').innerText = UTILS.fmtMoney(stats.ing - stats.gas);
-                document.getElementById('kpi-subs').innerText = stats.subs;
-                document.getElementById('kpi-tarjeta').innerText = UTILS.fmtMoney(stats.card);
+                document.getElementById('kpi-balance').innerText  = UTILS.fmtMoney(stats.ing - stats.gas);
+                document.getElementById('kpi-subs').innerText     = stats.subs;
+                document.getElementById('kpi-tarjeta').innerText  = UTILS.fmtMoney(stats.card);
                 document.getElementById('kpi-transfer').innerText = UTILS.fmtMoney(stats.trans);
 
                 const setTrend = (id, current, prev, isBadIfUp) => {
@@ -551,11 +709,10 @@
 
                 const tasa = stats.ing > 0 ? Math.max(0, ((stats.ing - stats.gas) / stats.ing) * 100) : 0;
                 document.getElementById('gauge-percent').innerText = `${Math.round(tasa)}%`;
-                
-                // MEJORA v21.1: Pasar catTotals para evitar recálculo
                 App.generateInsights(stats, prevStats, catTotals);
                 return tasa;
             },
+
             renderTop5: (ranking) => {
                 const rankArr = Object.entries(ranking).map(([k, v]) => ({ name: k, total: v }));
                 const topG = rankArr.filter(x => x.total < 0).sort((a, b) => a.total - b.total).slice(0, 5);
@@ -564,11 +721,14 @@
                 document.getElementById('top-gastos-list').innerHTML = topG.map(x => rowH(x, 'text-red-500')).join('');
                 document.getElementById('top-ingresos-list').innerHTML = topI.map(x => rowH(x, 'text-green-500')).join('');
             },
+
             renderTable: (movs) => {
                 const html = movs.map(m => `
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                         <td class="px-6 py-4 text-xs font-mono opacity-80">${m.fecha}</td>
-                        <td class="px-6 py-4 font-medium text-slate-700 dark:text-slate-200 cursor-pointer" onclick="this.querySelector('div').classList.toggle('truncate'); this.querySelector('div').classList.toggle('whitespace-normal');" title="Clic para expandir/contraer">
+                        <td class="px-6 py-4 font-medium text-slate-700 dark:text-slate-200 cursor-pointer"
+                            onclick="this.querySelector('div').classList.toggle('truncate'); this.querySelector('div').classList.toggle('whitespace-normal');"
+                            title="Clic para expandir/contraer">
                             <div class="truncate max-w-[300px] transition-all duration-200">${m.desc}</div>
                         </td>
                         <td class="px-6 py-4 text-xs"><span class="cat-tag">${m.cat}</span></td>
@@ -577,187 +737,169 @@
                 `).join('');
                 document.getElementById('table-body').innerHTML = html;
             },
+
             renderHeatmap: (dailyGas) => {
-                const heatDiv = document.getElementById('heatmap'); heatDiv.innerHTML = '';
+                const heatDiv = document.getElementById('heatmap');
+                heatDiv.innerHTML = '';
                 const sel = document.getElementById('month-selector').value;
-                
-                let loopDays = 90;
+
                 let startDate = new Date();
                 startDate.setDate(startDate.getDate() - 90);
+                let loopDays = 90;
 
-                if(sel !== 'all') {
+                if (sel !== 'all') {
                     const [y, m] = sel.split('-').map(Number);
                     startDate = new Date(y, m - 1, 1);
-                    loopDays = new Date(y, m, 0).getDate(); 
+                    loopDays = new Date(y, m, 0).getDate();
                 }
 
                 for (let i = 0; i < loopDays; i++) {
-                   let d = new Date(startDate);
-                   d.setDate(d.getDate() + i);
-                   let ds = d.toLocaleDateString('es-ES');
-                   let val = dailyGas[ds] || 0;
-                   let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-400' : val > 0 ? 'bg-red-200' : 'bg-slate-100 dark:bg-slate-700/30';
-                   let dayEl = document.createElement('div'); dayEl.className = `heat-day ${color}`; dayEl.title = `${ds}: ${UTILS.fmtMoney(val)}`;
-                   heatDiv.appendChild(dayEl);
+                    let d = new Date(startDate);
+                    d.setDate(d.getDate() + i);
+                    let ds = d.toLocaleDateString('es-ES');
+                    let val = dailyGas[ds] || 0;
+                    let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-400' : val > 0 ? 'bg-red-200' : 'bg-slate-100 dark:bg-slate-700/30';
+                    let dayEl = document.createElement('div');
+                    dayEl.className = `heat-day ${color}`;
+                    dayEl.title = `${ds}: ${UTILS.fmtMoney(val)}`;
+                    heatDiv.appendChild(dayEl);
                 }
             },
+
             renderCharts: (stats, catTotals, movs, tasaAhorro) => {
-                ['chart-gauge', 'chart-pie', 'chart-line', 'chart-history-bar'].forEach(id => { if (UI.charts[id]) UI.charts[id].destroy(); });
-                
-                const isDark = document.body.classList.contains('dark-mode');
-                const txtColor = isDark ? '#e2e8f0' : '#334155';
-                const gridColor = isDark ? '#334155' : '#e2e8f0';
+                ['chart-gauge', 'chart-pie', 'chart-line', 'chart-history-bar'].forEach(id => {
+                    if (UI.charts[id]) UI.charts[id].destroy();
+                });
+
+                const isDark = true;
+                const txtColor = '#e2e8f0';
+                const gridColor = '#334155';
 
                 UI.charts['chart-gauge'] = new Chart(document.getElementById('chart-gauge'), {
                     type: 'doughnut',
-                    data: { datasets: [{ 
-                        data: [tasaAhorro, 100 - tasaAhorro], 
-                        backgroundColor: ['#3b82f6', isDark ? '#1e293b' : '#e2e8f0'], 
-                        hoverBackgroundColor: ['#60a5fa', isDark ? '#1e293b' : '#e2e8f0'],
-                        hoverBorderColor: '#ffffff',
-                        hoverBorderWidth: 2,
-                        borderWidth: 0, 
-                        circumference: 180, 
-                        rotation: 270, 
-                        cutout: '85%' 
-                    }] },
+                    data: { datasets: [{ data: [tasaAhorro, 100 - tasaAhorro], backgroundColor: ['#3b82f6', '#1e293b'], borderWidth: 0, circumference: 180, rotation: 270, cutout: '85%' }] },
                     options: { maintainAspectRatio: false, plugins: { tooltip: { enabled: false } } }
                 });
-                
+
                 UI.charts['chart-pie'] = new Chart(document.getElementById('chart-pie'), {
                     type: 'doughnut',
                     data: { labels: Object.keys(catTotals), datasets: [{ data: Object.values(catTotals), backgroundColor: CONFIG.colors, borderWidth: 0, hoverOffset: 60 }] },
-                    options: { 
-                        maintainAspectRatio: false, 
-                        plugins: { legend: { position: 'right', labels: { color: txtColor, boxWidth: 12, padding: 15, font: {size: 11} } } }, 
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { color: txtColor, boxWidth: 12, padding: 15, font: { size: 11 } } } },
                         cutout: '70%',
                         onClick: (e, elements) => {
                             if (elements.length > 0) {
-                                const index = elements[0].index;
-                                const label = UI.charts['chart-pie'].data.labels[index];
+                                const label = UI.charts['chart-pie'].data.labels[elements[0].index];
                                 App.applyCategoryFilter(label);
-				document.querySelector('table').scrollIntoView({ behavior: 'smooth' });
+                                document.querySelector('table').scrollIntoView({ behavior: 'smooth' });
                             }
                         }
                     }
                 });
 
-                const cronoMovs = [...movs].sort((a,b) => a.dateObj - b.dateObj);
-                let acc = 0; const pts = cronoMovs.map(m => { acc += m.importe; return acc; });
-                
+                const cronoMovs = [...movs].sort((a, b) => a.dateObj - b.dateObj);
+                let acc = 0;
+                const pts = cronoMovs.map(m => { acc += m.importe; return acc; });
+
                 UI.charts['chart-line'] = new Chart(document.getElementById('chart-line'), {
                     type: 'line',
-                    data: { labels: cronoMovs.map(m => m.fecha.substring(0, 5)), datasets: [{ label: 'Saldo', data: pts, borderColor: '#3b82f6', borderWidth: 3, tension: 0.3, pointRadius: 0, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)' }] },
-                    options: { 
-                        maintainAspectRatio: false, 
-                        scales: { 
-                            y: { ticks: { color: txtColor, font: {size: 10} }, grid: { color: gridColor, borderDash: [5,5] } }, 
-                            x: { ticks: { color: txtColor, font: {size: 10} }, grid: { display: false } } 
-                        },
-                        plugins: { legend: { display: false } }
-                    }
+                    data: { labels: cronoMovs.map(m => m.fecha.substring(0, 5)), datasets: [{ label: 'Saldo', data: pts, borderColor: '#3b82f6', borderWidth: 3, tension: 0.3, pointRadius: 0, fill: true, backgroundColor: 'rgba(59,130,246,0.1)' }] },
+                    options: { maintainAspectRatio: false, scales: { y: { ticks: { color: txtColor, font: { size: 10 } }, grid: { color: gridColor, borderDash: [5, 5] } }, x: { ticks: { color: txtColor, font: { size: 10 } }, grid: { display: false } } }, plugins: { legend: { display: false } } }
                 });
 
                 const historyData = App.getHistoricalData();
                 UI.charts['chart-history-bar'] = new Chart(document.getElementById('chart-history-bar'), {
                     type: 'bar',
-                    data: {
-                        labels: historyData.labels,
-                        datasets: [
-                            { label: 'Ingresos', data: historyData.incomes, backgroundColor: '#10b981', borderRadius: 5 },
-                            { label: 'Gastos', data: historyData.expenses, backgroundColor: '#ef4444', borderRadius: 5 }
-                        ]
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { ticks: { color: txtColor, font: {size: 10} }, grid: { color: gridColor, borderDash: [5,5] } },
-                            x: { ticks: { color: txtColor, font: {size: 10} }, grid: { display: false } }
-                        },
-                        plugins: { legend: { labels: { color: txtColor, font: {size: 11} } } }
-                    }
+                    data: { labels: historyData.labels, datasets: [{ label: 'Ingresos', data: historyData.incomes, backgroundColor: '#10b981', borderRadius: 5 }, { label: 'Gastos', data: historyData.expenses, backgroundColor: '#ef4444', borderRadius: 5 }] },
+                    options: { maintainAspectRatio: false, scales: { y: { ticks: { color: txtColor, font: { size: 10 } }, grid: { color: gridColor, borderDash: [5, 5] } }, x: { ticks: { color: txtColor, font: { size: 10 } }, grid: { display: false } } }, plugins: { legend: { labels: { color: txtColor, font: { size: 11 } } } } }
                 });
 
                 google.charts.setOnLoadCallback(() => {
                     const data = new google.visualization.DataTable();
                     data.addColumn('string', 'From'); data.addColumn('string', 'To'); data.addColumn('number', 'Importe');
-                    const rows = [['Ingresos', 'Total', Math.round(stats.ing)]];
-                    for (const [cat, total] of Object.entries(catTotals)) { rows.push(['Total', cat, Math.round(total)]); }
-                    if (stats.ing - stats.gas > 0) rows.push(['Total', 'Ahorro', Math.round(stats.ing - stats.gas)]);
-                    data.addRows(rows);
-                    const sankeyColors = isDark ? '#94a3b8' : '#334155';
-                    new google.visualization.Sankey(document.getElementById('sankey-container')).draw(data, { sankey: { node: { label: { fontSize: 11, fontWeight: 'bold', color: sankeyColors }, nodePadding: 20 }, link: { colorMode: 'gradient' } } });
+                    const sankeyRows = [['Ingresos', 'Total', Math.round(stats.ing)]];
+                    for (const [cat, total] of Object.entries(catTotals)) sankeyRows.push(['Total', cat, Math.round(total)]);
+                    if (stats.ing - stats.gas > 0) sankeyRows.push(['Total', 'Ahorro', Math.round(stats.ing - stats.gas)]);
+                    data.addRows(sankeyRows);
+                    new google.visualization.Sankey(document.getElementById('sankey-container')).draw(data, {
+                        sankey: { node: { label: { fontSize: 11, fontWeight: 'bold', color: '#94a3b8' }, nodePadding: 20 }, link: { colorMode: 'gradient' } }
+                    });
                 });
             }
         };
 
+        // ─────────────────────────────────────────────
+        // APP
+        // ─────────────────────────────────────────────
         const App = {
             init: () => {
-                google.charts.load('current', {'packages':['sankey']});
+                google.charts.load('current', { packages: ['sankey'] });
                 App.setupListeners();
             },
+
             getCurrentFilteredMovs: () => {
-                if(!rawDataStore) return [];
+                if (!rawDataStore) return [];
                 const sel = document.getElementById('month-selector').value;
-                if (sel === 'all') return rawDataStore.movs;
-                return rawDataStore.movs.filter(m => m.monthKey === sel);
+                return sel === 'all' ? rawDataStore.movs : rawDataStore.movs.filter(m => m.monthKey === sel);
             },
+
             getMovsForTable: () => {
                 let movs = App.getCurrentFilteredMovs();
-                if (activeCategoryFilter) {
-                    movs = movs.filter(m => m.cat === activeCategoryFilter);
-                }
+                if (activeCategoryFilter) movs = movs.filter(m => m.cat === activeCategoryFilter);
                 if (activeSearchTerm) {
                     const term = activeSearchTerm.toLowerCase();
-                    movs = movs.filter(m => 
-                        m.desc.toLowerCase().includes(term) || 
+                    movs = movs.filter(m =>
+                        m.desc.toLowerCase().includes(term) ||
                         m.cat.toLowerCase().includes(term) ||
                         m.importe.toString().includes(term)
                     );
                 }
                 return movs;
             },
+
             getHistoricalData: () => {
-                if(!rawDataStore) return { labels: [], incomes: [], expenses: [] };
+                if (!rawDataStore) return { labels: [], incomes: [], expenses: [] };
                 const sortedMonths = [...rawDataStore.months].reverse();
-                const incomes = [];
-                const expenses = [];
+                const incomes = [], expenses = [];
                 const labels = sortedMonths.map(m => {
                     const [y, mon] = m.split('-');
-                    const date = new Date(y, mon-1);
-                    const income = rawDataStore.movs.filter(mov => mov.monthKey === m && mov.importe > 0).reduce((acc, curr) => acc + curr.importe, 0);
-                    const expense = rawDataStore.movs.filter(mov => mov.monthKey === m && mov.importe < 0).reduce((acc, curr) => acc + Math.abs(curr.importe), 0);
+                    const income  = rawDataStore.movs.filter(mv => mv.monthKey === m && mv.importe > 0).reduce((a, c) => a + c.importe, 0);
+                    const expense = rawDataStore.movs.filter(mv => mv.monthKey === m && mv.importe < 0).reduce((a, c) => a + Math.abs(c.importe), 0);
                     incomes.push(Math.round(income));
                     expenses.push(Math.round(expense));
-                    return date.toLocaleString('es-ES', { month: 'short' });
+                    return new Date(y, mon - 1).toLocaleString('es-ES', { month: 'short' });
                 });
                 return { labels, incomes, expenses };
             },
-            // MEJORA v21.1: Recibe catTotals para evitar recálculo
+
             generateInsights: (stats, prevStats, catTotals) => {
                 const panel = document.getElementById('insights-panel');
                 panel.innerHTML = '';
+
                 let trendHtml = '';
-                if(prevStats) {
+                if (prevStats) {
                     const diff = ((stats.gas - prevStats.gas) / prevStats.gas) * 100;
                     const color = diff > 0 ? 'text-red-400' : 'text-green-400';
                     const icon = diff > 0 ? '⚠️' : '✅';
                     const text = diff > 0 ? 'Has gastado más que el mes pasado.' : '¡Bien! Has reducido tus gastos.';
                     trendHtml = `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">${icon}</span><div><p class="text-xs font-bold uppercase text-slate-400">Tendencia</p><p class="text-sm font-semibold ${color}">${Math.abs(diff).toFixed(1)}% ${diff > 0 ? 'de aumento' : 'de ahorro'}.</p><p class="text-[10px] text-slate-500">${text}</p></div></div>`;
                 }
-                
-                // v21.1: Usa catTotals pasado por parámetro
-                const sortedCats = Object.entries(catTotals).sort((a,b) => b[1] - a[1]);
+
+                const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
                 let catHtml = '';
-                if(sortedCats.length > 0) {
-                    catHtml = `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">📊</span><div><p class="text-xs font-bold uppercase text-slate-400">Fuga de Dinero</p><p class="text-sm font-semibold text-white">${sortedCats[0][0]}</p><p class="text-[10px] text-slate-500">Es tu mayor gasto este mes (${UTILS.fmtMoney(sortedCats[0][1])}).</p></div></div>`;
+                if (sortedCats.length > 0) {
+                    catHtml = `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">📊</span><div><p class="text-xs font-bold uppercase text-slate-400">Fuga de Dinero</p><p class="text-sm font-semibold text-white">${sortedCats[0][0]}</p><p class="text-[10px] text-slate-500">Es tu mayor gasto este periodo (${UTILS.fmtMoney(sortedCats[0][1])}).</p></div></div>`;
                 }
+
                 const tasa = stats.ing > 0 ? ((stats.ing - stats.gas) / stats.ing) * 100 : 0;
                 const health = tasa > 20 ? 'Excelente' : tasa > 10 ? 'Buena' : 'Mejorable';
                 const healthColor = tasa > 20 ? 'text-blue-400' : tasa > 10 ? 'text-green-400' : 'text-yellow-400';
                 const healthHtml = `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">🎯</span><div><p class="text-xs font-bold uppercase text-slate-400">Salud Financiera</p><p class="text-sm font-semibold ${healthColor}">${health}</p><p class="text-[10px] text-slate-500">Tu tasa de ahorro es del ${Math.round(tasa)}%.</p></div></div>`;
+
                 panel.innerHTML = trendHtml + catHtml + healthHtml;
             },
+
             updateFilterBadge: () => {
                 const filtered = App.getMovsForTable();
                 if (activeSearchTerm || activeCategoryFilter) {
@@ -771,11 +913,13 @@
                     document.getElementById('btn-clear-filter').classList.add('hidden');
                 }
             },
+
             applyCategoryFilter: (category) => {
                 activeCategoryFilter = category;
                 App.updateFilterBadge();
                 UI.renderTable(App.getMovsForTable());
             },
+
             clearCategoryFilter: () => {
                 activeCategoryFilter = null;
                 activeSearchTerm = '';
@@ -783,15 +927,19 @@
                 document.getElementById('btn-clear-filter').classList.add('hidden');
                 UI.renderTable(App.getMovsForTable());
             },
+
             refreshDashboard: () => {
                 App.clearCategoryFilter();
                 const movs = App.getCurrentFilteredMovs();
                 const processed = DataEngine.calculateStats(movs);
                 const sel = document.getElementById('month-selector').value;
                 let prevStats = null;
+
                 const currentYM = new Date().toISOString().slice(0, 7);
                 const alertEl = document.getElementById('alert-partial');
-                if (sel === currentYM) alertEl.classList.remove('hidden'); else alertEl.classList.add('hidden');
+                if (sel === currentYM) alertEl.classList.remove('hidden');
+                else alertEl.classList.add('hidden');
+
                 if (sel !== 'all') {
                     let [y, m] = sel.split('-').map(Number);
                     m--; if (m === 0) { m = 12; y--; }
@@ -799,13 +947,14 @@
                     const prevMovs = rawDataStore.movs.filter(k => k.monthKey === prevKey);
                     if (prevMovs.length > 0) prevStats = DataEngine.calculateStats(prevMovs).stats;
                 }
-                // v21.1: Pasamos processed.catTotals
+
                 const tasaAhorro = UI.updateKPIs(processed.stats, prevStats, processed.catTotals);
                 UI.renderHeatmap(processed.dailyGas);
                 UI.renderTop5(processed.ranking);
                 UI.renderCharts(processed.stats, processed.catTotals, movs, tasaAhorro);
                 UI.renderTable(movs);
             },
+
             setupListeners: () => {
                 document.getElementById('btn-download-side').addEventListener('click', UI.downloadApp);
                 document.getElementById('btn-menu').addEventListener('click', UI.toggleMobileMenu);
@@ -821,22 +970,27 @@
                     App.updateFilterBadge();
                     UI.renderTable(App.getMovsForTable());
                 });
+
                 document.getElementById('file-input').addEventListener('change', async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     const r = new FileReader();
                     r.onload = ev => {
-                        const rows = XLSX.utils.sheet_to_json(XLSX.read(ev.target.result, { type: 'array' }).Sheets[XLSX.read(ev.target.result, { type: 'array' }).SheetNames[0]], { header: 1, defval: '' });
+                        // MEJORA: leer el workbook una sola vez
+                        const wb = XLSX.read(ev.target.result, { type: 'array' });
+                        const ws = wb.Sheets[wb.SheetNames[0]];
+                        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
                         const processedData = DataEngine.processRows(rows);
-                        if (processedData) { 
-                            rawDataStore = processedData; 
+                        if (processedData) {
+                            rawDataStore = processedData;
                             const sel = document.getElementById('month-selector');
                             sel.innerHTML = '<option value="all">Todo el Histórico</option>';
                             processedData.months.forEach(m => {
                                 const opt = document.createElement('option');
                                 opt.value = m;
                                 const [y, mon] = m.split('-');
-                                const dateName = new Date(y, mon-1).toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+                                const dateName = new Date(y, mon - 1).toLocaleString('es-ES', { month: 'long', year: 'numeric' });
                                 opt.innerText = dateName.charAt(0).toUpperCase() + dateName.slice(1);
                                 sel.appendChild(opt);
                             });
@@ -847,11 +1001,15 @@
                     };
                     r.readAsArrayBuffer(file);
                 });
+
                 document.getElementById('btn-screenshot-side').addEventListener('click', async () => {
                     const sidebar = document.getElementById('sidebar');
                     sidebar.style.display = 'none';
-                    const canvas = await html2canvas(document.body, { backgroundColor: document.body.classList.contains('dark-mode') ? '#0f172a' : '#f0f9ff' });
-                    const link = document.createElement('a'); link.download = `MyFinance_Report.png`; link.href = canvas.toDataURL(); link.click();
+                    const canvas = await html2canvas(document.body, { backgroundColor: '#0f172a' });
+                    const link = document.createElement('a');
+                    link.download = 'MyFinance_Report.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
                     sidebar.style.display = '';
                 });
             }
