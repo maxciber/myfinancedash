@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Finance Dash | v23.1</title>
+    <title>My Finance Dash | v24.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -59,11 +59,57 @@
         /* FIJOS vs VARIABLES */
         .fv-bar { height:10px; border-radius:5px; background:#1e293b; overflow:hidden; margin-top:6px; }
         .fv-fill { height:100%; border-radius:5px; transition:width 0.6s ease; }
+        /* MODO TIEMPO */
+        .time-switch { display:flex; align-items:center; gap:8px; cursor:pointer; }
+        .time-switch-track { width:40px; height:22px; background:#334155; border-radius:11px; position:relative; transition:background 0.2s; flex-shrink:0; }
+        .time-switch-track.on { background:#8b5cf6; }
+        .time-switch-thumb { width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:3px; left:3px; transition:transform 0.2s; }
+        .time-switch-track.on .time-switch-thumb { transform:translateX(18px); }
+        .time-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); border-radius:9999px; font-size:10px; font-weight:700; color:#a78bfa; }
+        /* En modo tiempo el kpi-value hereda el gradiente, no hace falta override */
+
         .mobile-overlay { display:none; }
         @media (max-width:768px) { .sidebar { transform:translateX(-100%); } .sidebar.open { transform:translateX(0); } .main-content { margin-left:0!important; } .mobile-overlay.open { display:block; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:40; } }
     </style>
 </head>
 <body class="dark-mode dark">
+
+<!-- MODAL CONFIGURACIÓN MODO TIEMPO -->
+<div id="time-config-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:400px">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-xl">⏱️</div>
+            <div>
+                <h2 class="text-lg font-bold">Modo Coste en Tiempo</h2>
+                <p class="text-xs text-slate-400">¿Cuánto vale tu hora de trabajo?</p>
+            </div>
+        </div>
+        <div class="space-y-4 mb-6">
+            <div>
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">💶 Nómina mensual neta</label>
+                <div class="relative">
+                    <input type="number" id="time-nomina" placeholder="1500" min="1"
+                        class="col-select w-full pr-12" style="padding-right:3rem">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold" id="time-currency-symbol">€</span>
+                </div>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">🕐 Horas trabajadas al mes</label>
+                <input type="number" id="time-horas" placeholder="160" min="1" max="744"
+                    class="col-select w-full">
+                <p class="text-[10px] text-slate-500 mt-1">Jornada completa habitual: 160h · Media jornada: 80h</p>
+            </div>
+            <div id="time-preview" class="hidden px-4 py-3 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                <p class="text-xs text-slate-400">Tu hora de trabajo vale</p>
+                <p class="text-xl font-black text-purple-300" id="time-hourly-rate">—</p>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <button id="time-config-cancel" class="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold rounded-xl transition-colors text-sm">Cancelar</button>
+            <button id="time-config-confirm" class="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-colors text-sm">✓ Activar modo tiempo</button>
+        </div>
+    </div>
+</div>
 
 <div id="onboarding-modal" class="modal-overlay hidden">
     <div class="modal-box">
@@ -106,7 +152,7 @@
         </div>
         <div>
             <h1 class="font-bold text-lg leading-tight tracking-tight">Finance<span class="text-blue-600">Dash</span></h1>
-            <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V23.1 SMART</p>
+            <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V24.0 SMART</p>
         </div>
     </div>
     <nav class="flex-1">
@@ -167,6 +213,13 @@
             <div><h2 class="text-xl font-bold">Resumen Financiero</h2><p class="text-xs text-slate-400">Vista general de tus movimientos</p></div>
             <div class="flex items-center gap-3 flex-wrap">
                 <div id="currency-badge" class="currency-badge hidden"><span>🌍</span><span id="currency-badge-text"></span></div>
+                <!-- SWITCH MODO TIEMPO -->
+                <div class="time-switch" id="time-mode-switch" title="Ver gastos como tiempo de trabajo">
+                    <div class="time-switch-track" id="time-switch-track">
+                        <div class="time-switch-thumb"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-400">⏱️ Tiempo</span>
+                </div>
                 <div id="alert-partial" class="hidden px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] font-bold uppercase rounded-full border border-yellow-200">⚠️ Mes Actual</div>
                 <select id="month-selector" class="cursor-pointer bg-slate-800/50 border border-slate-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 font-semibold shadow-sm outline-none backdrop-blur-sm transition-colors hover:bg-slate-700/50"><option value="all">Todo el Histórico</option></select>
             </div>
@@ -399,9 +452,25 @@ let pendingColMap = null;
 let sortConfig = { key:'fecha', desc:true };
 let activeCategoryFilter = null;
 let activeSearchTerm = '';
-// Overrides manuales fijos/variables: Set de keys movidas manualmente
-// fvOverrides: { key → 'fijo' | 'variable' }
 let fvOverrides = {};
+// MODO TIEMPO
+let timeMode = false;
+let timeConfig = { nomina: 0, horas: 160 }; // nomina neta mensual, horas/mes
+
+// Formatea un importe como tiempo de trabajo (horas y minutos)
+UTILS.fmtTime = (euros) => {
+    if (!timeMode || timeConfig.nomina <= 0) return UTILS.fmtMoney(euros);
+    const hourlyRate = timeConfig.nomina / timeConfig.horas;
+    const totalHours = Math.abs(euros) / hourlyRate;
+    const h = Math.floor(totalHours);
+    const m = Math.round((totalHours - h) * 60);
+    if (h === 0) return `${m}min`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}min`;
+};
+
+// Función principal de formato — usa tiempo o dinero según el modo
+UTILS.fmt = (n) => timeMode ? UTILS.fmtTime(n) : UTILS.fmtMoney(n);
 
 const DataEngine = {
     detectColumns: (rows) => {
@@ -581,7 +650,7 @@ const UI = {
     toggleMobileMenu: () => { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('mobile-overlay').classList.toggle('open'); },
     downloadApp: () => {
         const blob = new Blob([document.documentElement.outerHTML], { type:'text/html' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'MyFinance_Dash_v23.1.html'; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'MyFinance_Dash_v24.0.html'; a.click();
     },
 
     // ── EXPORTAR PDF ─────────────────────────────
@@ -750,12 +819,12 @@ const UI = {
     showDashboard: () => { document.getElementById('upload-area').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); },
 
     updateKPIs: (stats, prevStats, catTotals) => {
-        document.getElementById('kpi-gastos').innerText   = UTILS.fmtMoney(stats.gas);
-        document.getElementById('kpi-ingresos').innerText = UTILS.fmtMoney(stats.ing);
-        document.getElementById('kpi-balance').innerText  = UTILS.fmtMoney(stats.ing - stats.gas);
+        document.getElementById('kpi-gastos').innerText   = UTILS.fmt(stats.gas);
+        document.getElementById('kpi-ingresos').innerText = UTILS.fmt(stats.ing);
+        document.getElementById('kpi-balance').innerText  = UTILS.fmt(stats.ing - stats.gas);
         document.getElementById('kpi-subs').innerText     = stats.subs;
-        document.getElementById('kpi-tarjeta').innerText  = UTILS.fmtMoney(stats.card);
-        document.getElementById('kpi-transfer').innerText = UTILS.fmtMoney(stats.trans);
+        document.getElementById('kpi-tarjeta').innerText  = UTILS.fmt(stats.card);
+        document.getElementById('kpi-transfer').innerText = UTILS.fmt(stats.trans);
         const setTrend = (id, current, prev, isBadIfUp) => {
             const el = document.getElementById(id);
             if (!prev || prev === 0) { el.innerHTML = ''; return; }
@@ -781,9 +850,9 @@ const UI = {
         panel.classList.remove('hidden');
         const pctFijos = Math.round((fijos / total) * 100);
         const pctVar   = Math.round((variables / total) * 100);
-        document.getElementById('fv-fijos').innerText      = UTILS.fmtMoney(fijos);
-        document.getElementById('fv-variables').innerText  = UTILS.fmtMoney(variables);
-        document.getElementById('fv-margen').innerText     = UTILS.fmtMoney(variables);
+        document.getElementById('fv-fijos').innerText      = UTILS.fmt(fijos);
+        document.getElementById('fv-variables').innerText  = UTILS.fmt(variables);
+        document.getElementById('fv-margen').innerText     = UTILS.fmt(variables);
         document.getElementById('fv-fijos-bar').style.width    = `${pctFijos}%`;
         document.getElementById('fv-variables-bar').style.width = `${pctVar}%`;
         document.getElementById('fv-fijos-pct').innerText    = `${pctFijos}% del gasto total`;
@@ -796,7 +865,7 @@ const UI = {
             return `<div class="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors gap-2">
                 <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold text-slate-200 truncate">${item.name}</p>
-                    <p class="text-[10px] text-slate-500">${UTILS.fmtMoney(item.total)}</p>
+                    <p class="text-[10px] text-slate-500">${UTILS.fmt(item.total)}</p>
                 </div>
                 <button onclick="App.toggleFV('${item.key.replace(/'/g,"\\'")}','${toTarget}')"
                     class="text-xs font-bold px-2 py-1 rounded-lg transition-colors ${btnColor} flex-shrink-0" title="Mover a ${toTarget}">
@@ -820,7 +889,7 @@ const UI = {
         const panel = document.getElementById('prediction-panel');
         if (!pred) { panel.classList.add('hidden'); return; }
         panel.classList.remove('hidden');
-        document.getElementById('pred-amount').innerText      = UTILS.fmtMoney(pred.predicted);
+        document.getElementById('pred-amount').innerText      = UTILS.fmt(pred.predicted);
         document.getElementById('pred-days-passed').innerText = pred.daysPassed;
         document.getElementById('pred-days-left').innerText   = pred.daysLeft;
         const vsAvg = document.getElementById('pred-vs-avg');
@@ -832,7 +901,7 @@ const UI = {
         const pct = Math.round((pred.daysPassed / pred.daysInMonth) * 100);
         document.getElementById('pred-bar').style.width = `${pct}%`;
         document.getElementById('pred-bar').className = `prediction-fill ${pred.predicted > pred.avgHistoric * 1.1 ? 'bg-red-400' : 'bg-amber-400'}`;
-        document.getElementById('pred-bar-label').innerText = `Día ${pred.daysPassed} de ${pred.daysInMonth} · Ritmo: ${UTILS.fmtMoney(pred.dailyRate)}/día`;
+        document.getElementById('pred-bar-label').innerText = `Día ${pred.daysPassed} de ${pred.daysInMonth} · Ritmo: ${UTILS.fmt(pred.dailyRate)}/día`;
     },
 
     renderRecurrentes: (recurrentes) => {
@@ -845,7 +914,7 @@ const UI = {
                     <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-sm">🔄</div>
                     <div><p class="text-sm font-semibold text-white truncate max-w-[200px]">${r.name}</p><p class="text-[10px] text-slate-500">Aprox. día ${r.avgDay} · ${r.months} meses · <span class="cat-tag" style="font-size:9px;padding:2px 6px">${r.cat}</span></p></div>
                 </div>
-                <p class="text-sm font-bold text-red-400 whitespace-nowrap">${UTILS.fmtMoney(r.avg)}/mes</p>
+                <p class="text-sm font-bold text-red-400 whitespace-nowrap">${UTILS.fmt(r.avg)}/mes</p>
             </div>`).join('');
     },
 
@@ -853,7 +922,7 @@ const UI = {
         const rankArr = Object.entries(ranking).map(([k, v]) => ({ name:k, total:v }));
         const topG = rankArr.filter(x => x.total < 0).sort((a, b) => a.total - b.total).slice(0, 5);
         const topI = rankArr.filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
-        const rowH = (i, c) => `<div class="flex justify-between py-2 border-b border-slate-700/50 text-xs"><span class="truncate w-2/3 font-semibold uppercase opacity-80">${i.name}</span><span class="font-bold ${c}">${UTILS.fmtMoney(i.total)}</span></div>`;
+        const rowH = (i, c) => `<div class="flex justify-between py-2 border-b border-slate-700/50 text-xs"><span class="truncate w-2/3 font-semibold uppercase opacity-80">${i.name}</span><span class="font-bold ${c}">${UTILS.fmt(i.total)}</span></div>`;
         document.getElementById('top-gastos-list').innerHTML  = topG.map(x => rowH(x, 'text-red-500')).join('');
         document.getElementById('top-ingresos-list').innerHTML = topI.map(x => rowH(x, 'text-green-500')).join('');
     },
@@ -864,7 +933,7 @@ const UI = {
                 <td class="px-6 py-4 text-xs font-mono opacity-80">${m.fecha}</td>
                 <td class="px-6 py-4 font-medium text-slate-200 cursor-pointer" onclick="this.querySelector('div').classList.toggle('truncate');this.querySelector('div').classList.toggle('whitespace-normal');"><div class="truncate max-w-[300px]">${m.desc}</div></td>
                 <td class="px-6 py-4 text-xs"><span class="cat-tag">${m.cat}</span></td>
-                <td class="px-6 py-4 text-right font-bold ${m.importe >= 0 ? 'text-green-400' : 'text-red-400'}">${UTILS.fmtMoney(m.importe)}</td>
+                <td class="px-6 py-4 text-right font-bold ${m.importe >= 0 ? 'text-green-400' : 'text-red-400'}">${UTILS.fmt(m.importe)}</td>
             </tr>`).join('');
     },
 
@@ -877,7 +946,7 @@ const UI = {
             let d = new Date(startDate); d.setDate(d.getDate() + i);
             let ds = d.toLocaleDateString('es-ES'); let val = dailyGas[ds] || 0;
             let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-400' : val > 0 ? 'bg-red-200' : 'bg-slate-700/30';
-            let el = document.createElement('div'); el.className = `heat-day ${color}`; el.title = `${ds}: ${UTILS.fmtMoney(val)}`; heatDiv.appendChild(el);
+            let el = document.createElement('div'); el.className = `heat-day ${color}`; el.title = `${ds}: ${UTILS.fmt(val)}`; heatDiv.appendChild(el);
         }
     },
 
@@ -994,7 +1063,7 @@ const App = {
             html += `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">${diff > 0 ? '⚠️' : '✅'}</span><div><p class="text-xs font-bold uppercase text-slate-400">Tendencia</p><p class="text-sm font-semibold ${color}">${Math.abs(diff).toFixed(1)}% ${diff > 0 ? 'de aumento' : 'de ahorro'}.</p><p class="text-[10px] text-slate-500">${diff > 0 ? 'Has gastado más que el mes pasado.' : '¡Bien! Has reducido tus gastos.'}</p></div></div>`;
         }
         const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
-        if (sortedCats.length > 0) html += `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">📊</span><div><p class="text-xs font-bold uppercase text-slate-400">Fuga de Dinero</p><p class="text-sm font-semibold text-white">${sortedCats[0][0]}</p><p class="text-[10px] text-slate-500">Mayor gasto del periodo (${UTILS.fmtMoney(sortedCats[0][1])}).</p></div></div>`;
+        if (sortedCats.length > 0) html += `<div class="glass-card p-4 flex items-start gap-3"><span class="text-2xl">📊</span><div><p class="text-xs font-bold uppercase text-slate-400">Fuga de Dinero</p><p class="text-sm font-semibold text-white">${sortedCats[0][0]}</p><p class="text-[10px] text-slate-500">Mayor gasto del periodo (${UTILS.fmt(sortedCats[0][1])}).</p></div></div>`;
         const tasa = stats.ing > 0 ? ((stats.ing - stats.gas) / stats.ing) * 100 : 0;
         const health = tasa > 20 ? 'Excelente' : tasa > 10 ? 'Buena' : 'Mejorable';
         const hColor = tasa > 20 ? 'text-blue-400' : tasa > 10 ? 'text-green-400' : 'text-yellow-400';
@@ -1008,12 +1077,47 @@ const App = {
             let total = 0; filtered.forEach(m => total += m.importe);
             let label = activeCategoryFilter ? activeCategoryFilter : `"${activeSearchTerm}"`;
             if (activeCategoryFilter && activeSearchTerm) label = `${activeCategoryFilter} + "${activeSearchTerm}"`;
-            document.getElementById('filter-name').innerText = `${label} | ${filtered.length} movs | Total: ${UTILS.fmtMoney(total)}`;
+            document.getElementById('filter-name').innerText = `${label} | ${filtered.length} movs | Total: ${UTILS.fmt(total)}`;
             document.getElementById('btn-clear-filter').classList.remove('hidden');
         } else { document.getElementById('btn-clear-filter').classList.add('hidden'); }
     },
 
     applyCategoryFilter: (category) => { activeCategoryFilter = category; App.updateFilterBadge(); UI.renderTable(App.getMovsForTable()); },
+
+    // ── MODO TIEMPO ──────────────────────────────
+    openTimeConfig: () => {
+        document.getElementById('time-nomina').value = timeConfig.nomina || '';
+        document.getElementById('time-horas').value  = timeConfig.horas || 160;
+        document.getElementById('time-currency-symbol').innerText = UTILS.currency.symbol;
+        document.getElementById('time-preview').classList.add('hidden');
+        document.getElementById('time-config-modal').classList.remove('hidden');
+    },
+
+    closeTimeConfig: () => {
+        document.getElementById('time-config-modal').classList.add('hidden');
+        // Si se cancela y el modo no estaba activo, aseguramos que el switch quede apagado
+        if (!timeMode) document.getElementById('time-switch-track').classList.remove('on');
+    },
+
+    activateTimeMode: () => {
+        const nomina = parseFloat(document.getElementById('time-nomina').value);
+        const horas  = parseFloat(document.getElementById('time-horas').value);
+        if (!nomina || nomina <= 0 || !horas || horas <= 0) {
+            alert('⚠️ Introduce valores válidos para la nómina y las horas.');
+            return;
+        }
+        timeConfig = { nomina, horas };
+        timeMode = true;
+        document.getElementById('time-switch-track').classList.add('on');
+        document.getElementById('time-config-modal').classList.add('hidden');
+        App.refreshDashboard();
+    },
+
+    deactivateTimeMode: () => {
+        timeMode = false;
+        document.getElementById('time-switch-track').classList.remove('on');
+        App.refreshDashboard();
+    },
 
     // Mover un ítem entre fijos y variables manualmente
     toggleFV: (key, toTarget) => {
@@ -1060,6 +1164,29 @@ const App = {
     setupListeners: () => {
         document.getElementById('btn-download-side').addEventListener('click', UI.downloadApp);
         document.getElementById('btn-pdf-side').addEventListener('click', UI.exportPDF);
+
+        // Switch modo tiempo
+        document.getElementById('time-mode-switch').addEventListener('click', () => {
+            if (timeMode) { App.deactivateTimeMode(); }
+            else { App.openTimeConfig(); }
+        });
+        // Modal tiempo
+        document.getElementById('time-config-cancel').addEventListener('click', App.closeTimeConfig);
+        document.getElementById('time-config-confirm').addEventListener('click', App.activateTimeMode);
+        // Preview en tiempo real al escribir
+        const updatePreview = () => {
+            const n = parseFloat(document.getElementById('time-nomina').value);
+            const h = parseFloat(document.getElementById('time-horas').value);
+            const prev = document.getElementById('time-preview');
+            if (n > 0 && h > 0) {
+                const rate = n / h;
+                document.getElementById('time-hourly-rate').innerText =
+                    `${rate.toFixed(2)} ${UTILS.currency.symbol}/hora`;
+                prev.classList.remove('hidden');
+            } else { prev.classList.add('hidden'); }
+        };
+        document.getElementById('time-nomina').addEventListener('input', updatePreview);
+        document.getElementById('time-horas').addEventListener('input', updatePreview);
         document.getElementById('btn-menu').addEventListener('click', UI.toggleMobileMenu);
         document.getElementById('mobile-overlay').addEventListener('click', UI.toggleMobileMenu);
         document.getElementById('month-selector').addEventListener('change', App.refreshDashboard);
