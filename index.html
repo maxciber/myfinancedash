@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Finance Dash | v24.0</title>
+    <title>My Finance Dash | v25.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -66,7 +66,12 @@
         .time-switch-thumb { width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:3px; left:3px; transition:transform 0.2s; }
         .time-switch-track.on .time-switch-thumb { transform:translateX(18px); }
         .time-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); border-radius:9999px; font-size:10px; font-weight:700; color:#a78bfa; }
-        /* En modo tiempo el kpi-value hereda el gradiente, no hace falta override */
+
+
+        /* ── COMPARATIVA MES A MES (v25) ── */
+        .comp-tab { padding:6px 14px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s; color:#64748b; border:1px solid transparent; }
+        .comp-tab.active { background:rgba(99,102,241,0.2); color:#818cf8; border-color:rgba(99,102,241,0.3); }
+        .comp-tab:hover:not(.active) { color:#94a3b8; background:rgba(255,255,255,0.04); }
 
         .mobile-overlay { display:none; }
         @media (max-width:768px) { .sidebar { transform:translateX(-100%); } .sidebar.open { transform:translateX(0); } .main-content { margin-left:0!important; } .mobile-overlay.open { display:block; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:40; } }
@@ -152,7 +157,7 @@
         </div>
         <div>
             <h1 class="font-bold text-lg leading-tight tracking-tight">Finance<span class="text-blue-600">Dash</span></h1>
-            <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V24.0 SMART</p>
+            <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V25.0 SMART</p>
         </div>
     </div>
     <nav class="flex-1">
@@ -213,7 +218,6 @@
             <div><h2 class="text-xl font-bold">Resumen Financiero</h2><p class="text-xs text-slate-400">Vista general de tus movimientos</p></div>
             <div class="flex items-center gap-3 flex-wrap">
                 <div id="currency-badge" class="currency-badge hidden"><span>🌍</span><span id="currency-badge-text"></span></div>
-                <!-- SWITCH MODO TIEMPO -->
                 <div class="time-switch" id="time-mode-switch" title="Ver gastos como tiempo de trabajo">
                     <div class="time-switch-track" id="time-switch-track">
                         <div class="time-switch-thumb"></div>
@@ -248,7 +252,8 @@
 
         <div id="insights-panel" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
 
-        <!-- GASTOS FIJOS vs VARIABLES (nuevo v23.0) -->
+
+        <!-- GASTOS FIJOS vs VARIABLES -->
         <div id="fv-panel" class="hidden glass-card">
             <h3 class="font-bold text-sm mb-5 flex items-center gap-2">
                 <span class="w-2 h-2 bg-cyan-400 rounded-full"></span> Gastos Fijos vs Variables
@@ -277,7 +282,6 @@
                     <p class="text-[10px] text-slate-500 mt-1">Lo que podrías recortar</p>
                 </div>
             </div>
-            <!-- DESGLOSE DETALLADO -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <p class="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -329,6 +333,28 @@
         <div class="grid grid-cols-1 gap-6">
             <div class="glass-card"><h3 class="font-bold text-slate-200 mb-4 text-sm">Evolución del Saldo (Periodo)</h3><div class="h-72 relative"><canvas id="chart-line"></canvas></div></div>
             <div class="glass-card"><h3 class="font-bold text-slate-200 mb-4 text-sm">Evolución Mensual (Ingresos vs Gastos)</h3><div class="h-72 relative"><canvas id="chart-history-bar"></canvas></div></div>
+
+            <!-- ══════════════════════════════════════════
+                 🆚 COMPARATIVA MES A MES POR CATEGORÍA (v25.0 NEW)
+            ══════════════════════════════════════════ -->
+            <div id="catcomp-panel" class="hidden glass-card">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+                    <div>
+                        <h3 class="font-bold text-slate-200 text-sm flex items-center gap-2">
+                            Comparativa Mes a Mes por Categoría
+                            <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full">NUEVO v25</span>
+                        </h3>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Gastos por categoría en los últimos meses · pulsa para filtrar</p>
+                    </div>
+                    <div class="flex gap-2 flex-wrap" id="catcomp-tabs">
+                        <button class="comp-tab active" data-n="3">Últimos 3</button>
+                        <button class="comp-tab" data-n="6">Últimos 6</button>
+                        <button class="comp-tab" data-n="12">Últimos 12</button>
+                    </div>
+                </div>
+                <div class="h-80 relative"><canvas id="chart-catcomp"></canvas></div>
+            </div>
+
             <div class="glass-card overflow-hidden"><h3 class="font-bold text-slate-200 mb-4 text-sm">Flujo de Dinero (Sankey)</h3><div id="sankey-container" style="width:100%;height:350px;"></div></div>
         </div>
 
@@ -453,11 +479,12 @@ let sortConfig = { key:'fecha', desc:true };
 let activeCategoryFilter = null;
 let activeSearchTerm = '';
 let fvOverrides = {};
+let catCompMonths = 3; // cuántos meses mostrar en comparativa
+
 // MODO TIEMPO
 let timeMode = false;
-let timeConfig = { nomina: 0, horas: 160 }; // nomina neta mensual, horas/mes
+let timeConfig = { nomina: 0, horas: 160 };
 
-// Formatea un importe como tiempo de trabajo (horas y minutos)
 UTILS.fmtTime = (euros) => {
     if (!timeMode || timeConfig.nomina <= 0) return UTILS.fmtMoney(euros);
     const hourlyRate = timeConfig.nomina / timeConfig.horas;
@@ -468,8 +495,6 @@ UTILS.fmtTime = (euros) => {
     if (m === 0) return `${h}h`;
     return `${h}h ${m}min`;
 };
-
-// Función principal de formato — usa tiempo o dinero según el modo
 UTILS.fmt = (n) => timeMode ? UTILS.fmtTime(n) : UTILS.fmtMoney(n);
 
 const DataEngine = {
@@ -560,11 +585,9 @@ const DataEngine = {
         return recurrentes.sort((a, b) => b.avg - a.avg);
     },
 
-    // ── FIJOS vs VARIABLES ───────────────────────
     calcFijosVariables: (movs, recurrentes) => {
         const fixedKeys = new Set(recurrentes.map(r => UTILS.cleanString(r.name).substring(0, 20)));
         let fijos = 0, variables = 0;
-        // Agrupar por comercio para el desglose
         const byKey = {};
         movs.filter(m => m.importe < 0).forEach(m => {
             const key = UTILS.cleanString(m.desc).substring(0, 20);
@@ -602,6 +625,35 @@ const DataEngine = {
             avgHistoric = totals.reduce((a, b) => a + b, 0) / totals.length;
         }
         return { predicted, gastoActual, daysPassed, daysLeft, daysInMonth, avgHistoric, dailyRate };
+    },
+
+    // ── 🆚 DATOS COMPARATIVA MES A MES
+    // Devuelve objeto para pintar el gráfico de barras agrupadas.
+    getCatCompData: (allMovs, nMonths) => {
+        const allMonths = [...new Set(allMovs.map(m => m.monthKey))].sort().reverse();
+        const months = allMonths.slice(0, nMonths).reverse(); // cronológico
+        const cats = [...new Set(allMovs.filter(m => m.importe < 0 && !m.cat.includes('Ingresos')).map(m => m.cat))];
+
+        const labels = months.map(mk => {
+            const [y, mo] = mk.split('-');
+            return new Date(y, mo-1).toLocaleString('es-ES', { month:'short', year:'2-digit' });
+        });
+
+        // Una serie por categoría
+        const datasets = cats.map((cat, idx) => ({
+            label: cat,
+            data: months.map(mk =>
+                Math.round(allMovs
+                    .filter(m => m.monthKey === mk && m.cat === cat && m.importe < 0)
+                    .reduce((a, m) => a + Math.abs(m.importe), 0))
+            ),
+            backgroundColor: CONFIG.colors[idx % CONFIG.colors.length] + 'cc',
+            borderColor:      CONFIG.colors[idx % CONFIG.colors.length],
+            borderWidth: 1,
+            borderRadius: 4,
+        }));
+
+        return { labels, datasets, months };
     }
 };
 
@@ -650,10 +702,9 @@ const UI = {
     toggleMobileMenu: () => { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('mobile-overlay').classList.toggle('open'); },
     downloadApp: () => {
         const blob = new Blob([document.documentElement.outerHTML], { type:'text/html' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'MyFinance_Dash_v24.0.html'; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'MyFinance_Dash_v25.0.html'; a.click();
     },
 
-    // ── EXPORTAR PDF ─────────────────────────────
     exportPDF: () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
@@ -668,7 +719,6 @@ const UI = {
         const W = 210, margin = 18;
         let y = margin;
 
-        // Cabecera
         doc.setFillColor(15, 23, 42);
         doc.rect(0, 0, W, 28, 'F');
         doc.setTextColor(96, 165, 250);
@@ -683,7 +733,6 @@ const UI = {
 
         y = 38;
 
-        // KPIs principales — 3 columnas (fondo blanco, texto oscuro para contraste)
         const kpiData = [
             { label:'INGRESOS',     value: UTILS.fmtMoney(stats.ing),           labelColor:[21,128,61],   valueColor:[15,23,42]  },
             { label:'GASTOS',       value: UTILS.fmtMoney(stats.gas),           labelColor:[185,28,28],   valueColor:[15,23,42]  },
@@ -705,7 +754,6 @@ const UI = {
         });
         y += 28;
 
-        // Fila secundaria — tasa ahorro + fijos + variables
         const kpi2 = [
             { label:'TASA DE AHORRO',   value:`${Math.round(tasa)}%`,      labelColor:[109,40,217],  valueColor:[15,23,42] },
             { label:'GASTOS FIJOS',     value: UTILS.fmtMoney(fijos),      labelColor:[14,116,144],  valueColor:[15,23,42] },
@@ -726,7 +774,6 @@ const UI = {
         });
         y += 24;
 
-        // Sección: Top gastos por categoría
         doc.setFontSize(9); doc.setFont('helvetica','bold');
         doc.setTextColor(71, 85, 105);
         doc.text('DISTRIBUCIÓN POR CATEGORÍAS', margin, y); y += 5;
@@ -750,7 +797,6 @@ const UI = {
         });
         y += 4;
 
-        // Sección: Top 5 gastos individuales
         doc.setFontSize(9); doc.setFont('helvetica','bold');
         doc.setTextColor(71, 85, 105);
         doc.text('TOP 5 MAYORES GASTOS', margin, y); y += 5;
@@ -769,12 +815,12 @@ const UI = {
         });
         y += 6;
 
-        // Sección: Recurrentes
-        if (recurrentes.length > 0) {
+        const recurrentesPDF = DataEngine.detectRecurrentes(rawDataStore.movs);
+        if (recurrentesPDF.length > 0) {
             doc.setFontSize(9); doc.setFont('helvetica','bold');
             doc.setTextColor(71, 85, 105);
             doc.text('GASTOS RECURRENTES', margin, y); y += 5;
-            recurrentes.slice(0, 5).forEach((r, idx) => {
+            recurrentesPDF.slice(0, 5).forEach((r, idx) => {
                 doc.setFillColor(idx % 2 === 0 ? 248 : 241, idx % 2 === 0 ? 250 : 245, idx % 2 === 0 ? 252 : 251);
                 doc.rect(margin, y, W - margin*2, 7, 'F');
                 doc.setFontSize(8); doc.setFont('helvetica','normal');
@@ -787,7 +833,6 @@ const UI = {
             y += 4;
         }
 
-        // Footer
         doc.setFillColor(241, 245, 249);
         doc.rect(0, 285, W, 12, 'F');
         doc.setFontSize(7); doc.setFont('helvetica','normal');
@@ -858,7 +903,6 @@ const UI = {
         document.getElementById('fv-fijos-pct').innerText    = `${pctFijos}% del gasto total`;
         document.getElementById('fv-variables-pct').innerText = `${pctVar}% del gasto total`;
 
-        // Renderizar desglose con botones de cambio
         const itemRow = (item, toTarget) => {
             const arrow = toTarget === 'variable' ? '→' : '←';
             const btnColor = toTarget === 'variable' ? 'text-orange-400 hover:bg-orange-500/20' : 'text-cyan-400 hover:bg-cyan-500/20';
@@ -950,6 +994,59 @@ const UI = {
         }
     },
 
+    // ── 🆚 RENDER COMPARATIVA (v25.0) ──────────────────────────────
+    renderCatComp: (nMonths) => {
+        const panel = document.getElementById('catcomp-panel');
+        if (!rawDataStore) { panel.classList.add('hidden'); return; }
+
+        const allMonths = [...new Set(rawDataStore.movs.map(m => m.monthKey))].sort();
+        if (allMonths.length < 2) { panel.classList.add('hidden'); return; }
+        panel.classList.remove('hidden');
+
+        const { labels, datasets } = DataEngine.getCatCompData(rawDataStore.movs, nMonths);
+
+        if (UI.charts['chart-catcomp']) UI.charts['chart-catcomp'].destroy();
+
+        const txtColor = '#e2e8f0', gridColor = '#334155';
+        UI.charts['chart-catcomp'] = new Chart(document.getElementById('chart-catcomp'), {
+            type: 'bar',
+            data: { labels, datasets },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: {
+                        ticks: { color: txtColor, font: { size: 10 } },
+                        grid: { display: false },
+                        stacked: false
+                    },
+                    y: {
+                        ticks: { color: txtColor, font: { size: 10 },
+                            callback: v => UTILS.fmtMoney(v) },
+                        grid: { color: gridColor, borderDash: [5, 5] }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: txtColor,
+                            boxWidth: 10,
+                            padding: 12,
+                            font: { size: 10 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.dataset.label}: ${UTILS.fmtMoney(ctx.parsed.y)}`
+                        }
+                    }
+                }
+            }
+        });
+    },
+
     renderCharts: (stats, catTotals, movs, tasaAhorro) => {
         ['chart-gauge','chart-pie','chart-line','chart-history-bar'].forEach(id => { if (UI.charts[id]) UI.charts[id].destroy(); });
         const txtColor = '#e2e8f0', gridColor = '#334155';
@@ -1008,7 +1105,7 @@ const App = {
 
     loadData: (processedData) => {
         rawDataStore = processedData;
-        fvOverrides = {}; // reset overrides al cargar nuevo archivo
+        fvOverrides = {};
         document.getElementById('currency-badge').classList.remove('hidden');
         document.getElementById('currency-badge-text').innerText = `${UTILS.currency.symbol} ${UTILS.currency.code} · ${UTILS.dateFormat}`;
         const sel = document.getElementById('month-selector');
@@ -1084,7 +1181,6 @@ const App = {
 
     applyCategoryFilter: (category) => { activeCategoryFilter = category; App.updateFilterBadge(); UI.renderTable(App.getMovsForTable()); },
 
-    // ── MODO TIEMPO ──────────────────────────────
     openTimeConfig: () => {
         document.getElementById('time-nomina').value = timeConfig.nomina || '';
         document.getElementById('time-horas').value  = timeConfig.horas || 160;
@@ -1095,7 +1191,6 @@ const App = {
 
     closeTimeConfig: () => {
         document.getElementById('time-config-modal').classList.add('hidden');
-        // Si se cancela y el modo no estaba activo, aseguramos que el switch quede apagado
         if (!timeMode) document.getElementById('time-switch-track').classList.remove('on');
     },
 
@@ -1119,7 +1214,6 @@ const App = {
         App.refreshDashboard();
     },
 
-    // Mover un ítem entre fijos y variables manualmente
     toggleFV: (key, toTarget) => {
         fvOverrides[key] = toTarget;
         const movs = App.getCurrentFilteredMovs();
@@ -1152,12 +1246,17 @@ const App = {
         const tasaAhorro = UI.updateKPIs(processed.stats, prevStats, processed.catTotals);
         const pred = (sel === 'all' || sel === currentYM) ? DataEngine.predictEndOfMonth(rawDataStore.movs, rawDataStore.movs) : null;
         UI.renderPrediction(pred);
+
         const recurrentes = DataEngine.detectRecurrentes(rawDataStore.movs);
         UI.renderRecurrentes(recurrentes);
         UI.renderFijosVariables(movs, recurrentes);
         UI.renderHeatmap(processed.dailyGas);
         UI.renderTop5(processed.ranking);
         UI.renderCharts(processed.stats, processed.catTotals, movs, tasaAhorro);
+
+        // 🆚 Comparativa mes a mes (siempre usa todos los datos)
+        UI.renderCatComp(catCompMonths);
+
         UI.renderTable(movs);
     },
 
@@ -1165,15 +1264,12 @@ const App = {
         document.getElementById('btn-download-side').addEventListener('click', UI.downloadApp);
         document.getElementById('btn-pdf-side').addEventListener('click', UI.exportPDF);
 
-        // Switch modo tiempo
         document.getElementById('time-mode-switch').addEventListener('click', () => {
             if (timeMode) { App.deactivateTimeMode(); }
             else { App.openTimeConfig(); }
         });
-        // Modal tiempo
         document.getElementById('time-config-cancel').addEventListener('click', App.closeTimeConfig);
         document.getElementById('time-config-confirm').addEventListener('click', App.activateTimeMode);
-        // Preview en tiempo real al escribir
         const updatePreview = () => {
             const n = parseFloat(document.getElementById('time-nomina').value);
             const h = parseFloat(document.getElementById('time-horas').value);
@@ -1213,6 +1309,16 @@ const App = {
             const canvas = await html2canvas(document.body, { backgroundColor:'#0f172a' });
             const link = document.createElement('a'); link.download = 'MyFinance_Report.png'; link.href = canvas.toDataURL(); link.click();
             sidebar.style.display = '';
+        });
+
+        // ── 🆚 TABS COMPARATIVA (v25.0) ─────────────────────────────
+        document.getElementById('catcomp-tabs').addEventListener('click', (e) => {
+            const tab = e.target.closest('.comp-tab');
+            if (!tab) return;
+            document.querySelectorAll('.comp-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            catCompMonths = parseInt(tab.dataset.n);
+            UI.renderCatComp(catCompMonths);
         });
     }
 };
