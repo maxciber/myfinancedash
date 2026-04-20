@@ -160,15 +160,6 @@
             box-shadow: 0 0 40px rgba(59,130,246,0.06) inset;
         }
 
-        /* ── HEATMAP ── */
-        .heatmap-container { display:flex; flex-wrap:wrap; gap:3px; }
-        .heat-day {
-            width: 11px; height: 11px;
-            border-radius: 2px;
-            cursor: pointer;
-            transition: transform 0.12s ease, box-shadow 0.12s ease;
-        }
-        .heat-day:hover { transform: scale(1.6); z-index: 10; box-shadow: 0 0 6px rgba(255,255,255,0.2); }
 
         /* ── TABLE ── */
         th.sortable { cursor:pointer; user-select:none; transition: background 0.15s; }
@@ -331,7 +322,47 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ── MOBILE ── */
+        /* ── DRAG & DROP ── */
+        .upload-zone.drag-over {
+            border-color: rgba(59,130,246,0.8) !important;
+            background: rgba(59,130,246,0.08) !important;
+            box-shadow: 0 0 60px rgba(59,130,246,0.12) inset;
+            transform: scale(1.01);
+        }
+        .upload-zone.drag-over .upload-icon { transform: translateY(-6px) scale(1.1); }
+        .upload-icon { transition: transform 0.25s ease; display: inline-block; }
+
+        /* ── COUNT-UP ANIMATION ── */
+        .kpi-value { transition: opacity 0.15s; }
+        .kpi-value.counting { opacity: 0.7; }
+
+        /* ── MODO TIEMPO: header púrpura ── */
+        #dashboard-header { transition: background 0.4s ease, border-color 0.4s ease; }
+        #dashboard-header.time-active {
+            background: rgba(109,40,217,0.15) !important;
+            border-color: rgba(139,92,246,0.25) !important;
+        }
+        #dashboard-header.time-active h2 { color: #c4b5fd !important; }
+
+        /* ── CALENDARIO ── */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+        .cal-header-cell { text-align: center; font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; padding-bottom: 6px; }
+        .cal-day {
+            aspect-ratio: 1;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.35);
+        }
+        .cal-day:hover { transform: scale(1.25); z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+        .cal-day.cal-empty { background: transparent; cursor: default; }
+        .cal-day.cal-empty:hover { transform: none; box-shadow: none; }
+        .cal-day.cal-today { box-shadow: 0 0 0 1.5px rgba(59,130,246,0.6); color: rgba(255,255,255,0.7); }
+        .cal-day.cal-active { box-shadow: 0 0 0 2px #3b82f6; color: white; }
+
+
         .mobile-overlay { display:none; }
         @media (max-width:768px) {
             .sidebar { transform:translateX(-100%); }
@@ -465,8 +496,8 @@
     </div>
 
     <div id="upload-area" class="max-w-2xl mx-auto mt-20 text-center">
-        <div class="glass-card upload-zone p-12">
-            <div class="w-24 h-24 bg-blue-100/50 rounded-full flex items-center justify-center mx-auto mb-6"><span class="text-5xl">📂</span></div>
+        <div class="glass-card upload-zone p-12" id="drop-zone">
+            <div class="w-24 h-24 bg-blue-100/50 rounded-full flex items-center justify-center mx-auto mb-6 upload-icon"><span class="text-5xl">📂</span></div>
             <h2 class="text-3xl font-bold mb-3 tracking-tight">Importa tus datos</h2>
             <p class="text-slate-400 mb-2 max-w-md mx-auto">Arrastra tu Excel o CSV aquí. Tus datos nunca salen de este navegador.</p>
             <p class="text-slate-500 mb-8 text-xs">🌍 Detección automática de moneda · 📅 Formato de fecha · ⚙️ Asistente de columnas</p>
@@ -479,7 +510,7 @@
 
     <div id="dashboard" class="hidden max-w-6xl mx-auto space-y-6">
 
-        <div class="glass-card flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
+        <div id="dashboard-header" class="glass-card flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
             <div><h2 class="text-xl font-bold">Resumen Financiero</h2><p class="text-xs text-slate-400">Vista general de tus movimientos</p></div>
             <div class="flex items-center gap-3 flex-wrap">
                 <div id="currency-badge" class="currency-badge hidden"><span>🌍</span><span id="currency-badge-text"></span></div>
@@ -592,13 +623,30 @@
         </div>
 
         <div class="glass-card">
-            <h3 class="font-bold text-slate-200 mb-4 text-sm flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full"></span> Intensidad de Gasto Diario</h3>
-            <div id="heatmap" class="heatmap-container"></div>
-            <div class="mt-4 flex gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-slate-700/30 rounded"></div> Sin Gasto</div>
-                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-200 rounded"></div> Bajo</div>
-                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-400 rounded"></div> Medio</div>
-                <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-600 rounded"></div> Alto</div>
+            <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+                <h3 class="font-bold text-slate-200 text-sm flex items-center gap-2">
+                    <span class="section-dot bg-red-500"></span> Calendario de Gasto
+                </h3>
+                <div id="cal-month-nav" class="flex items-center gap-2 text-xs font-bold text-slate-400">
+                    <button id="cal-prev" class="w-7 h-7 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition-colors flex items-center justify-center">‹</button>
+                    <span id="cal-month-label" class="min-w-[110px] text-center text-slate-200"></span>
+                    <button id="cal-next" class="w-7 h-7 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition-colors flex items-center justify-center">›</button>
+                </div>
+            </div>
+            <div class="cal-grid mb-1" id="cal-weekdays"></div>
+            <div class="cal-grid" id="calendar"></div>
+            <div class="mt-4 flex items-center gap-5 flex-wrap">
+                <div class="flex gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded" style="background:rgba(51,65,85,0.5)"></div>Sin gasto</div>
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-900/60"></div>Bajo</div>
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-600/70"></div>Medio</div>
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500"></div>Alto</div>
+                </div>
+                <div id="cal-day-detail" class="ml-auto text-xs text-slate-400 hidden">
+                    <span id="cal-detail-date" class="font-bold text-white"></span>
+                    <span id="cal-detail-amount" class="ml-2 font-bold text-red-400"></span>
+                    <span id="cal-detail-count" class="ml-1 text-slate-500"></span>
+                </div>
             </div>
         </div>
 
@@ -1146,13 +1194,39 @@ const UI = {
 
     showDashboard: () => { document.getElementById('upload-area').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); },
 
+    countUp: (el, targetRaw, duration = 600) => {
+        // targetRaw is a formatted string — extract numeric value for animation
+        const isTime = timeMode;
+        // For time mode we can't easily interpolate, just set directly
+        if (isTime) { el.innerText = targetRaw; return; }
+        const num = parseFloat(String(targetRaw).replace(/[^\d.-]/g, ''));
+        if (isNaN(num)) { el.innerText = targetRaw; return; }
+        const start = performance.now();
+        const startVal = 0;
+        el.classList.add('counting');
+        const tick = (now) => {
+            const p = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - p, 3); // ease-out cubic
+            const cur = startVal + (num - startVal) * ease;
+            el.innerText = cur.toLocaleString(UTILS.currency.locale, { style:'currency', currency:UTILS.currency.code, maximumFractionDigits: 0 });
+            if (p < 1) requestAnimationFrame(tick);
+            else { el.innerText = targetRaw; el.classList.remove('counting'); }
+        };
+        requestAnimationFrame(tick);
+    },
+
     updateKPIs: (stats, prevStats, catTotals) => {
-        document.getElementById('kpi-gastos').innerText   = UTILS.fmt(stats.gas);
-        document.getElementById('kpi-ingresos').innerText = UTILS.fmt(stats.ing);
-        document.getElementById('kpi-balance').innerText  = UTILS.fmt(stats.ing - stats.gas);
+        const animate = (id, val) => UI.countUp(document.getElementById(id), UTILS.fmt(val));
+        animate('kpi-gastos',   stats.gas);
+        animate('kpi-ingresos', stats.ing);
+        animate('kpi-balance',  stats.ing - stats.gas);
         document.getElementById('kpi-subs').innerText     = stats.subs;
-        document.getElementById('kpi-tarjeta').innerText  = UTILS.fmt(stats.card);
-        document.getElementById('kpi-transfer').innerText = UTILS.fmt(stats.trans);
+        animate('kpi-tarjeta',  stats.card);
+        animate('kpi-transfer', stats.trans);
+
+        // Header púrpura en modo tiempo
+        document.getElementById('dashboard-header').classList.toggle('time-active', timeMode);
+
         const setTrend = (id, current, prev, isBadIfUp) => {
             const el = document.getElementById(id);
             if (!prev || prev === 0) { el.innerHTML = ''; return; }
@@ -1264,17 +1338,106 @@ const UI = {
             </tr>`).join('');
     },
 
-    renderHeatmap: (dailyGas) => {
-        const heatDiv = document.getElementById('heatmap'); heatDiv.innerHTML = '';
+    renderCalendar: (allMovs) => {
+        const weekdays = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+        document.getElementById('cal-weekdays').innerHTML =
+            weekdays.map(d => `<div class="cal-header-cell">${d}</div>`).join('');
+
         const sel = document.getElementById('month-selector').value;
-        let startDate = new Date(); startDate.setDate(startDate.getDate() - 90); let loopDays = 90;
-        if (sel !== 'all') { const [y, m] = sel.split('-').map(Number); startDate = new Date(y, m-1, 1); loopDays = new Date(y, m, 0).getDate(); }
-        for (let i = 0; i < loopDays; i++) {
-            let d = new Date(startDate); d.setDate(d.getDate() + i);
-            let ds = d.toLocaleDateString('es-ES'); let val = dailyGas[ds] || 0;
-            let color = val > 120 ? 'bg-red-600' : val > 40 ? 'bg-red-400' : val > 0 ? 'bg-red-200' : 'bg-slate-700/30';
-            let el = document.createElement('div'); el.className = `heat-day ${color}`; el.title = `${ds}: ${UTILS.fmt(val)}`; heatDiv.appendChild(el);
+        const now = new Date();
+        // Si hay mes seleccionado úsalo, si no usa el mes más reciente con datos
+        let calYear, calMonth;
+        if (sel !== 'all') {
+            [calYear, calMonth] = sel.split('-').map(Number);
+            calMonth -= 1;
+        } else {
+            // mes más reciente con movimientos
+            const latest = allMovs.reduce((a, m) => m.dateObj > a ? m.dateObj : a, new Date(0));
+            calYear  = latest.getFullYear();
+            calMonth = latest.getMonth();
         }
+
+        // Guardar en estado para navegación
+        UI._calYear  = calYear;
+        UI._calMonth = calMonth;
+        UI._allMovs  = allMovs;
+        UI._renderCalMonth(allMovs, calYear, calMonth);
+    },
+
+    _renderCalMonth: (allMovs, year, month) => {
+        const label = new Date(year, month).toLocaleString('es-ES', { month:'long', year:'numeric' });
+        document.getElementById('cal-month-label').innerText =
+            label.charAt(0).toUpperCase() + label.slice(1);
+
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        // JS: 0=Dom, necesitamos 0=Lun
+        const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
+
+        // Construir mapa día → {total, count}
+        const dayMap = {};
+        allMovs.filter(m => m.importe < 0).forEach(m => {
+            if (m.dateObj.getFullYear() === year && m.dateObj.getMonth() === month) {
+                const d = m.dateObj.getDate();
+                if (!dayMap[d]) dayMap[d] = { total: 0, count: 0 };
+                dayMap[d].total += Math.abs(m.importe);
+                dayMap[d].count++;
+            }
+        });
+
+        const amounts = Object.values(dayMap).map(v => v.total);
+        const maxAmt  = amounts.length ? Math.max(...amounts) : 1;
+
+        const today = new Date();
+        const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+        let html = '';
+        // Celdas vacías iniciales
+        for (let i = 0; i < firstDow; i++) html += `<div class="cal-day cal-empty"></div>`;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const info = dayMap[d];
+            const isToday = isCurrentMonth && today.getDate() === d;
+            let bg = 'background:rgba(51,65,85,0.35)';
+            if (info) {
+                const intensity = info.total / maxAmt;
+                if (intensity > 0.65)      bg = 'background:rgba(239,68,68,0.85)';
+                else if (intensity > 0.35) bg = 'background:rgba(239,68,68,0.55)';
+                else                        bg = 'background:rgba(153,27,27,0.55)';
+            }
+            const todayClass = isToday ? ' cal-today' : '';
+            const title = info
+                ? `${d}/${month+1}: ${UTILS.fmt(info.total)} · ${info.count} mov.`
+                : `${d}/${month+1}: sin gastos`;
+            html += `<div class="cal-day${todayClass}" style="${bg}" title="${title}"
+                data-day="${d}" data-total="${info ? info.total.toFixed(2) : 0}"
+                data-count="${info ? info.count : 0}">${d}</div>`;
+        }
+
+        document.getElementById('calendar').innerHTML = html;
+
+        // Click en día → muestra detalle y filtra tabla
+        document.getElementById('calendar').querySelectorAll('.cal-day:not(.cal-empty)').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('cal-active'));
+                el.classList.add('cal-active');
+                const d   = parseInt(el.dataset.day);
+                const amt = parseFloat(el.dataset.total);
+                const cnt = parseInt(el.dataset.count);
+                const detail = document.getElementById('cal-day-detail');
+                detail.classList.remove('hidden');
+                document.getElementById('cal-detail-date').innerText =
+                    `${String(d).padStart(2,'0')}/${String(month+1).padStart(2,'0')}/${year}`;
+                document.getElementById('cal-detail-amount').innerText = amt > 0 ? UTILS.fmt(amt) : 'Sin gastos';
+                document.getElementById('cal-detail-count').innerText  = cnt > 0 ? `· ${cnt} movimiento${cnt>1?'s':''}` : '';
+                // Filtrar tabla al día
+                if (amt > 0 && rawDataStore) {
+                    const dateStr = new Date(year, month, d).toLocaleDateString('es-ES');
+                    const filtered = rawDataStore.movs.filter(m => m.fecha === dateStr);
+                    UI.renderTable(filtered);
+                    document.getElementById('tabla-movimientos').scrollIntoView({ behavior:'smooth' });
+                }
+            });
+        });
     },
 
     // ── 🆚 RENDER COMPARATIVA (v25.0) ──────────────────────────────
@@ -1533,7 +1696,7 @@ const App = {
         const recurrentes = DataEngine.detectRecurrentes(rawDataStore.movs);
         UI.renderRecurrentes(recurrentes);
         UI.renderFijosVariables(movs, recurrentes);
-        UI.renderHeatmap(processed.dailyGas);
+        UI.renderCalendar(rawDataStore.movs);
         UI.renderTop5(processed.ranking);
         UI.renderCharts(processed.stats, processed.catTotals, movs, tasaAhorro);
 
@@ -1581,12 +1744,39 @@ const App = {
         document.getElementById('ob-btn-confirm').addEventListener('click', () => {
             Onboarding.confirm({ fecha: parseInt(document.getElementById('col-fecha').value), concepto: parseInt(document.getElementById('col-concepto').value), importe: parseInt(document.getElementById('col-importe').value) });
         });
-        document.getElementById('file-input').addEventListener('change', (e) => {
-            const file = e.target.files[0]; if (!file) return;
+        // ── DRAG & DROP ─────────────────────────────────────────────
+        const dropZone = document.getElementById('drop-zone');
+        const processFile = (file) => {
+            if (!file) return;
             const r = new FileReader();
             r.onload = ev => { const wb = XLSX.read(ev.target.result, { type:'array' }); const ws = wb.Sheets[wb.SheetNames[0]]; Onboarding.open(XLSX.utils.sheet_to_json(ws, { header:1, defval:'' })); };
             r.readAsArrayBuffer(file);
+        };
+        dropZone.addEventListener('dragover',  (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', (e) => { if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('drag-over'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault(); dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && /\.(xlsx?|csv)$/i.test(file.name)) processFile(file);
         });
+
+        document.getElementById('file-input').addEventListener('change', (e) => processFile(e.target.files[0]));
+
+        // ── NAVEGACIÓN CALENDARIO ────────────────────────────────────
+        document.getElementById('cal-prev').addEventListener('click', () => {
+            if (!UI._allMovs) return;
+            UI._calMonth--;
+            if (UI._calMonth < 0) { UI._calMonth = 11; UI._calYear--; }
+            UI._renderCalMonth(UI._allMovs, UI._calYear, UI._calMonth);
+        });
+        document.getElementById('cal-next').addEventListener('click', () => {
+            if (!UI._allMovs) return;
+            UI._calMonth++;
+            if (UI._calMonth > 11) { UI._calMonth = 0; UI._calYear++; }
+            UI._renderCalMonth(UI._allMovs, UI._calYear, UI._calMonth);
+        });
+
+
         document.getElementById('btn-screenshot-side').addEventListener('click', async () => {
             const sidebar = document.getElementById('sidebar'); sidebar.style.display = 'none';
             const canvas = await html2canvas(document.body, { backgroundColor:'#0f172a' });
