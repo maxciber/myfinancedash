@@ -332,9 +332,17 @@
         .upload-zone.drag-over .upload-icon { transform: translateY(-6px) scale(1.1); }
         .upload-icon { transition: transform 0.25s ease; display: inline-block; }
 
-        /* ── COUNT-UP ANIMATION ── */
-        .kpi-value { transition: opacity 0.15s; }
-        .kpi-value.counting { opacity: 0.7; }
+        /* ── SPARKLINE ── */
+        .sparkline-wrap { margin-top: 8px; height: 28px; }
+        .sparkline-wrap canvas { display: block; }
+
+        /* ── TABLA COMPACTA ── */
+        #table-body td { padding: 8px 16px !important; font-size: 0.78rem; }
+        #table-body td:first-child { padding-left: 20px !important; }
+        #table-body td:last-child  { padding-right: 20px !important; }
+        thead th { padding: 10px 16px !important; }
+        thead th:first-child { padding-left: 20px !important; }
+        thead th:last-child  { padding-right: 20px !important; }
 
         /* ── MODO TIEMPO: header púrpura ── */
         #dashboard-header { transition: background 0.4s ease, border-color 0.4s ease; }
@@ -453,7 +461,7 @@
         </div>
         <div>
             <h1 class="font-bold text-lg leading-tight tracking-tight">Finance<span class="text-blue-600">Dash</span></h1>
-            <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V25.0 SMART</p>
+            <p class="text-[10px] text-slate-400 font-semibold tracking-wider">V28.0 SMART</p>
         </div>
     </div>
     <nav class="flex-1">
@@ -530,23 +538,30 @@
                 <div class="absolute right-3 top-3 opacity-[0.07] group-hover:opacity-[0.13] transition-opacity text-5xl select-none">💸</div>
                 <p class="kpi-label">Gastos Totales</p>
                 <p class="kpi-value" id="kpi-gastos">0</p>
-                <div id="trend-gastos" class="mt-2 text-xs font-semibold"></div>
+                <p class="text-[10px] text-slate-500 mt-0.5 hidden" id="kpi-gastos-dual"></p>
+                <div class="sparkline-wrap"><canvas id="spark-gastos" height="28"></canvas></div>
+                <div id="trend-gastos" class="mt-1 text-xs font-semibold"></div>
             </div>
             <div class="glass-card kpi-card-ingresos relative overflow-hidden group">
                 <div class="absolute right-3 top-3 opacity-[0.07] group-hover:opacity-[0.13] transition-opacity text-5xl select-none">💰</div>
                 <p class="kpi-label">Ingresos</p>
                 <p class="kpi-value" id="kpi-ingresos">0</p>
-                <div id="trend-ingresos" class="mt-2 text-xs font-semibold"></div>
+                <p class="text-[10px] text-slate-500 mt-0.5 hidden" id="kpi-ingresos-dual"></p>
+                <div class="sparkline-wrap"><canvas id="spark-ingresos" height="28"></canvas></div>
+                <div id="trend-ingresos" class="mt-1 text-xs font-semibold"></div>
             </div>
             <div class="glass-card kpi-card-balance relative overflow-hidden">
                 <div class="absolute right-3 top-3 opacity-[0.07] text-5xl select-none">⚖️</div>
                 <p class="kpi-label">Balance Neto</p>
                 <p class="kpi-value" id="kpi-balance">0</p>
+                <p class="text-[10px] text-slate-500 mt-0.5 hidden" id="kpi-balance-dual"></p>
+                <div class="sparkline-wrap"><canvas id="spark-balance" height="28"></canvas></div>
             </div>
             <div class="glass-card kpi-card-subs relative overflow-hidden">
                 <div class="absolute right-3 top-3 opacity-[0.07] text-5xl select-none">📅</div>
                 <p class="kpi-label">Suscripciones</p>
                 <p class="kpi-value" id="kpi-subs">0</p>
+                <div class="sparkline-wrap"><canvas id="spark-subs" height="28"></canvas></div>
             </div>
         </div>
 
@@ -1033,7 +1048,7 @@ const UI = {
     toggleMobileMenu: () => { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('mobile-overlay').classList.toggle('open'); },
     downloadApp: () => {
         const blob = new Blob([document.documentElement.outerHTML], { type:'text/html' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'MyFinance_Dash_v25.0.html'; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'MyFinance_Dash_v28.0.html'; a.click();
     },
 
     exportPDF: () => {
@@ -1194,38 +1209,92 @@ const UI = {
 
     showDashboard: () => { document.getElementById('upload-area').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); },
 
-    countUp: (el, targetRaw, duration = 600) => {
-        // targetRaw is a formatted string — extract numeric value for animation
-        const isTime = timeMode;
-        // For time mode we can't easily interpolate, just set directly
-        if (isTime) { el.innerText = targetRaw; return; }
-        const num = parseFloat(String(targetRaw).replace(/[^\d.-]/g, ''));
-        if (isNaN(num)) { el.innerText = targetRaw; return; }
-        const start = performance.now();
-        const startVal = 0;
-        el.classList.add('counting');
-        const tick = (now) => {
-            const p = Math.min((now - start) / duration, 1);
-            const ease = 1 - Math.pow(1 - p, 3); // ease-out cubic
-            const cur = startVal + (num - startVal) * ease;
-            el.innerText = cur.toLocaleString(UTILS.currency.locale, { style:'currency', currency:UTILS.currency.code, maximumFractionDigits: 0 });
-            if (p < 1) requestAnimationFrame(tick);
-            else { el.innerText = targetRaw; el.classList.remove('counting'); }
-        };
-        requestAnimationFrame(tick);
+    drawSparkline: (canvasId, data, color) => {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || data.length < 2) return;
+        const ctx = canvas.getContext('2d');
+        // Ajustar tamaño al contenedor
+        canvas.width  = canvas.parentElement.offsetWidth || 160;
+        canvas.height = 28;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const W = canvas.width, H = canvas.height;
+        const min = Math.min(...data), max = Math.max(...data);
+        const range = max - min || 1;
+        const pts = data.map((v, i) => ({
+            x: (i / (data.length - 1)) * W,
+            y: H - ((v - min) / range) * (H - 4) - 2
+        }));
+        // Área rellena
+        const grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, color + '40');
+        grad.addColorStop(1, color + '00');
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, H);
+        pts.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.lineTo(pts[pts.length-1].x, H);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+        // Línea
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        // Punto final
+        const last = pts[pts.length - 1];
+        ctx.beginPath();
+        ctx.arc(last.x, last.y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    },
+
+    renderSparklines: (allMovs) => {
+        if (!allMovs || allMovs.length === 0) return;
+        const months = [...new Set(allMovs.map(m => m.monthKey))].sort();
+        if (months.length < 2) return;
+
+        const gastos   = months.map(mk => allMovs.filter(m => m.monthKey === mk && m.importe < 0).reduce((a,m) => a + Math.abs(m.importe), 0));
+        const ingresos = months.map(mk => allMovs.filter(m => m.monthKey === mk && m.importe > 0).reduce((a,m) => a + m.importe, 0));
+        const balance  = months.map((_, i) => ingresos[i] - gastos[i]);
+        const subs     = months.map(mk => allMovs.filter(m => m.monthKey === mk && m.cat.includes('Suscripciones')).length);
+
+        // Pequeño delay para que el DOM esté pintado
+        requestAnimationFrame(() => {
+            UI.drawSparkline('spark-gastos',   gastos,   '#ef4444');
+            UI.drawSparkline('spark-ingresos', ingresos, '#22c55e');
+            UI.drawSparkline('spark-balance',  balance,  '#3b82f6');
+            UI.drawSparkline('spark-subs',     subs,     '#a855f7');
+        });
     },
 
     updateKPIs: (stats, prevStats, catTotals) => {
-        const animate = (id, val) => UI.countUp(document.getElementById(id), UTILS.fmt(val));
-        animate('kpi-gastos',   stats.gas);
-        animate('kpi-ingresos', stats.ing);
-        animate('kpi-balance',  stats.ing - stats.gas);
+        document.getElementById('kpi-gastos').innerText   = UTILS.fmt(stats.gas);
+        document.getElementById('kpi-ingresos').innerText = UTILS.fmt(stats.ing);
+        document.getElementById('kpi-balance').innerText  = UTILS.fmt(stats.ing - stats.gas);
         document.getElementById('kpi-subs').innerText     = stats.subs;
-        animate('kpi-tarjeta',  stats.card);
-        animate('kpi-transfer', stats.trans);
+        document.getElementById('kpi-tarjeta').innerText  = UTILS.fmt(stats.card);
+        document.getElementById('kpi-transfer').innerText = UTILS.fmt(stats.trans);
 
         // Header púrpura en modo tiempo
         document.getElementById('dashboard-header').classList.toggle('time-active', timeMode);
+
+        // Equivalencia dual: muestra el valor en € cuando el modo tiempo está activo
+        const duals = [
+            { id: 'kpi-gastos-dual',   val: stats.gas           },
+            { id: 'kpi-ingresos-dual', val: stats.ing           },
+            { id: 'kpi-balance-dual',  val: stats.ing - stats.gas },
+        ];
+        duals.forEach(({ id, val }) => {
+            const el = document.getElementById(id);
+            if (timeMode) {
+                el.innerText = UTILS.fmtMoney(val);
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        });
 
         const setTrend = (id, current, prev, isBadIfUp) => {
             const el = document.getElementById(id);
@@ -1696,6 +1765,7 @@ const App = {
         const recurrentes = DataEngine.detectRecurrentes(rawDataStore.movs);
         UI.renderRecurrentes(recurrentes);
         UI.renderFijosVariables(movs, recurrentes);
+        UI.renderSparklines(rawDataStore.movs);
         UI.renderCalendar(rawDataStore.movs);
         UI.renderTop5(processed.ranking);
         UI.renderCharts(processed.stats, processed.catTotals, movs, tasaAhorro);
